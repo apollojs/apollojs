@@ -1,5 +1,5 @@
 {
-  "name": "apollo.js",
+  "name": "apollo",
   "author": "Xiaoyi Shi <ashi009@gmail.com>",
   "description": "A framework to extend global objects with advance features.",
   "version": "1.0.1",
