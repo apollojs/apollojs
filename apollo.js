@@ -1,6 +1,5 @@
 var util = require('util');
 var url = require('url');
-var ObjectID = require('mongodb').ObjectID;
 
 /**
  * Extend an object with another object
@@ -13,26 +12,36 @@ var ObjectID = require('mongodb').ObjectID;
 function $extend(obj, ext, override, deep) {
   if (override)
     if (deep)
-      (function rdext(obj, ext) {
-        for (var key in ext)
-          if (obj[key] instanceof Object)
-            rdext(obj[key], ext[key]);
-      })(obj, ext);
+      _overrideDeepExtend(obj, ext);
     else
       for (var key in ext)
         obj[key] = ext[key];
   else
     if (deep)
-      (function dext(obj, ext) {
-        for (var key in ext)
-          if (!(key in obj))
-            if (obj[key] instanceof Object)
-              rdext(obj[key], ext[key]);
-      })(obj, ext);
+      _deepExtend(obj, ext);
     else
       for (var key in ext)
         if (!(key in obj))
           obj[key] = ext[key];
+  return obj;
+}
+
+function _overrideDeepExtend(obj, ext) {
+  for (var key in ext)
+    if (obj[key] instanceof Object)
+      _overrideDeepExtend(obj[key], ext[key]);
+    else
+      obj[key] = ext[key];
+}
+
+function _deepExtend(obj, ext) {
+  for (var key in ext)
+    if (!(key in obj)) {
+      if (obj[key] instanceof Object)
+        _deepExtend(obj[key], ext[key]);
+      else
+        obj[key] = ext[key];
+    }
 }
 
 /**
@@ -205,147 +214,6 @@ function $strip(object) {
   return object;
 }
 
-/**
- * Get a mongodb type update document
- * @param {Object} origin
- * @param {Object} target
- * @param {Number} depth
- * @param {Function} diffarray
- * @return {Object} update document, null if nothing to update
- */
-
-function $diff(origin, target, depth) {
-  const updateOps = [
-    "$inc",
-    "$rename",
-    "$setOnInsert",
-    "$set",
-    "$unset",
-    "$addToSet",
-    "$pop",
-    "$pullAll",
-    "$pull",
-    "$pushAll",
-    "$push",
-    "$bit"];
-
-  var diff = {};
-  updateOps.forEach(function(op) { diff[op] = {}; });
-  if(arguments.length == 1) {
-    //if origin is a mongodb update document,
-    //extract the op fields
-    if(updateOps.some(function(op) { return origin[op] })) {
-      updateOps.forEach(function(op) {
-        if(origin[op]) diff[op] = origin[op];
-      });
-    }
-    //else generate a update document with $set
-    else {
-      Object.keys(origin).forEach(function(field) {
-        if(field == '_id') return;
-        if(field[field.length - 1] == '$') return;
-        diff.$set[field] = origin[field];
-      })
-    }
-  }
-  else {
-    if(!target || !origin || typeof target !== 'object' || typeof origin !== 'object')
-      throw($error('target and origin must be document'));
-
-    delete target.$diff;
-    delete origin.$diff;
-
-    Object.keys(target).forEach(function(field) {
-      if(field == '_id') return;
-      if(field[field.length - 1] == '$') return;
-
-      if(target[field] === undefined)
-        diff.$unset[field] = 1;
-      else {
-        var equals = $equals(origin[field], target[field], depth-1);
-        if(equals === true)
-          return;
-        else if(equals === false)
-          diff.$set[field] = target[field];
-        else if(equals === 0) {
-          if(origin[field].some(function(o) {
-            if (!target[field].some(function(t) { return $equals(o, t, depth-1) === true; })) {
-              if(diff.$pull[field])
-                return true;
-              else
-                diff.$pull[field] = o;
-            }
-          })) {
-            diff.$set[field] = target[field];
-            delete diff.$pull[field];
-          }
-
-          else if(!diff.$pull[field]) {
-            if(!diff.$push[field]) diff.$push[field] = { $each: [] };
-            target[field].forEach(function(t) {
-              if (!origin[field].some(function(o) { return $equals(t, o, depth-1) === true; })) {
-                diff.$push[field].$each.push(t);
-              }
-            });
-          }
-        }
-        else if(equals) {
-          Object.keys(equals).forEach(function(op) {
-            Object.keys(equals[op]).forEach(function(_field) {
-              diff[op][field+'.'+_field] = equals[op][_field];
-            })
-          })
-        }
-      }
-    });
-  }
-  var notNull = false;
-  Object.keys(diff).forEach(function(op) {
-    if(Object.keys(diff[op]).length == 0) delete diff[op];
-    else notNull = true;
-  })
-  return notNull? diff: null;
-}
-/**
- * Compare two values's equality
- * @param  {[type]} a     [description]
- * @param  {[type]} b     [description]
- * @param  {[type]} depth [description]
- * @return {[type]}       [description]
- */
-function $equals(a, b, depth) {
-  if(typeof b === "function") b = b();
-  if(a === b) return true;
-  if(a === null) return false;
-  if(b === null) return false;
-  if(typeof a !== typeof b) return false;
-  if(typeof a !== "object") return false;
-
-  var aIsObjectID = a instanceof ObjectID;
-  var bIsObjectID = b instanceof ObjectID;
-  if(aIsObjectID ^ bIsObjectID) return false;
-  else if(aIsObjectID) return a.equals(b);
-
-  if(!depth) return false;
-
-  var aIsArray = Array.isArray(a);
-  var bIsArray = Array.isArray(b);
-  if(aIsArray ^ bIsArray) return false;
-  else if(aIsArray) {
-    //make sure all of a can be found in b
-    return (a.length == b.length && a.every(function(elem_a) {
-      var used = {};
-      return b.some(function(elem_b, i) {
-        if(used[i]) return false;
-        var eq = $equals(elem_a, elem_b, depth - 1);
-        if(eq === null || eq === true)
-          return used[i] = true;
-        return false;
-      })
-    })) ? true : 0;
-  }
-  return $diff(a, b, depth);
-}
 $define(global, {
   $extend: $extend,
   $define: $define,
@@ -359,9 +227,7 @@ $define(global, {
   // $bind: $bind,
   $default: $default,
   // $random: $random,
-  $wrap: $wrap,
-  $strip: $strip,
-  $diff: $diff
+  $wrap: $wrap
 });
 
 $define(String.prototype, {
@@ -629,31 +495,11 @@ $define(Boolean, {
   }
 });
 
-// console.log($equals([1,2,3,4], [1,2,3,4], -1));
-// console.log($equals([[1,2,3],2,3,4], [2,[1,2,3],3,4], -1));
-// console.log($equals([{x:1,y:[1,2,3]},2,3,4], [2,3,{x:1,y:[1,2,3]},4], -1));
-// console.log(JSON.stringify($equals({
-//   a:1,
-//   b:[2,3,4],
-//   c:["3","4","5"],
-//   d:[
-//     {
-//       x:1,
-//       y:"123"
-//     }
-//   ],
-//   e:[]
-// }, {
-//   a:1,
-//   b:undefined,
-//   c:["4","3"],
-//   d:[{
-//       y:"123",
-//       x:1
-//     }, {
-//       x:2,
-//       y:"123"
-//     }
-//   ],
-//   e:[1,2,3,4]
-// }, -1), null, 2));
+/**
+ * Trying to import mongodb extensions
+ */
+try {
+  require('./mongo-ext.js');
+} catch(e) {
+
+}
