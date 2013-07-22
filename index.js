@@ -1,5 +1,4 @@
 var util = require('util');
-var url = require('url');
 var crypto = require('crypto');
 
 /**
@@ -10,7 +9,7 @@ var crypto = require('crypto');
  * @param  {bool} deep       Doing an deep extend (perform extend on every object property)
  * @return {Object}          reference to obj
  */
-function $extend(obj, ext, override) {
+function $extend(obj, ext, override, deep) {
   if (override)
     if (deep)
       _overrideDeepExtend(obj, ext);
@@ -375,16 +374,18 @@ $define(Array.prototype, {
    * @return {array.$ = array}
    */
   partition: function(blocksize, cb) {
-    if(typeof blocksize == "function") {
+    if (typeof blocksize == "function") {
       cb = blocksize;
       blocksize = null;
     }
     blocksize = blocksize ? blocksize : 25;
     var re = [];
-    for(var i=0; i<this.length; i+=blocksize)
-      re.push(this.slice(i, i+blocksize));
-    if(cb) cb(null, re);
-    return re;
+    for (var i = 0; i < this.length; i += blocksize)
+      re.push(this.slice(i, i + blocksize));
+    if (cb)
+      cb(null, re);
+    else
+      return re;
   }
 });
 
@@ -436,8 +437,31 @@ $define(Object, {
     return Object.keys(obj).map(function(k) {
       return obj[k];
     });
+  },
+
+  /**
+   * Vague but fast isObject test
+   * Note: new String(), function, array, etc will return true
+   * @param  {Mixed} obj  object to test
+   * @return {bool}       true if obj is an object and not null
+   */
+  isObject: function(obj) {
+    // Known fastest way to test.
+    return typeof obj === 'object' && obj;
+  },
+
+  /**
+   * Strict isObject test, only pure Object will return true
+   * Note: only {} will return true
+   * @param  {Mixed} obj  object to test
+   * @return {bool}       true if obj is strictly an object
+   */
+  isObjectStrict: function(obj) {
+    return Object.prototype.toString.call(obj) === '[object Object]';
   }
+
 });
+
 $define(Object.prototype, {
   /**
    * project this with projectiong, same behaviour with mongodb projection
@@ -447,17 +471,17 @@ $define(Object.prototype, {
    * @return {Object}             projected object
    */
   project: function(projection, deep, keep) {
-    if(!projection) return this;
-    if(typeof projection != 'object') return this;
+    if (!projection) return this;
+    if (typeof projection != 'object') return this;
     var self = this;
     var res = {};
     Object.keys(projection).forEach(function(key) {
       var proj = projection[key];
       if(proj) {
         var el = self[key];
-        if(deep && el !== undefined && typeof el == 'object' && typeof proj == "object")
+        if (deep && el !== undefined && typeof el == 'object' && typeof proj == "object") {
           res[key] = el.project(projection[key]);
-        else {
+        } else {
           if(keep)
             res[key] = el;
           else if(el !== undefined)
@@ -468,6 +492,18 @@ $define(Object.prototype, {
     return res;
   }
 });
+
+$define(Function, {
+  /**
+   * Test if an object is a function
+   * @param  {Mixed} obj  object to test
+   * @return {bool}       true if so
+   */
+  isFunction: function(obj) {
+    return typeof obj === 'function';
+  }
+});
+
 $define(Date, {
   /**
    * Cast a value to Date
