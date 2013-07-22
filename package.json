@@ -7,13 +7,16 @@
   "countributors": [
     "Yan Dong <idy0013@gmail.com>"
   ],
-  "main": "./apollo.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "main": "./index.js",
   "license": "MIT",
   "optionalDependencies": {
     "mongodb": "*"
   },
-  "devDependency": {
-    "should": "*",
-    "mocha": "*"
+  "devDependencies": {
+    "mongodb": "*",
+    "should": "*"
   }
 }
