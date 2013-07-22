@@ -28,7 +28,7 @@ function $extend(obj, ext, override, deep) {
 
 function _overrideDeepExtend(obj, ext) {
   for (var key in ext)
-    if (obj[key] instanceof Object)
+    if (Object.isObjectStrict(obj[key]))
       _overrideDeepExtend(obj[key], ext[key]);
     else
       obj[key] = ext[key];
@@ -37,7 +37,7 @@ function _overrideDeepExtend(obj, ext) {
 function _deepExtend(obj, ext) {
   for (var key in ext)
     if (!(key in obj)) {
-      if (obj[key] instanceof Object)
+      if (Object.isObjectStrict(obj[key]))
         _deepExtend(obj[key], ext[key]);
       else
         obj[key] = ext[key];
@@ -344,6 +344,7 @@ $define(Array.prototype, {
   },
   /**
    * Rotate this array (0->n, 1->n+1, ...)
+   * TODO: improve performance with std implementation
    * @param  {int} n   the offset
    * @return {Array}   this
    */
@@ -354,6 +355,7 @@ $define(Array.prototype, {
   },
   /**
    * get last element in this array
+   * Note: It's not a reference when returning a non-object!
    * @return {Mixed} last element
    */
   getBack: function() {
@@ -363,6 +365,7 @@ $define(Array.prototype, {
   },
   /**
    * get first element in this array
+   * Note: It's not a reference when returning a non-object!
    * @return {Mixed} first element
    */
   getFront: function() {
@@ -374,7 +377,7 @@ $define(Array.prototype, {
    * @return {array.$ = array}
    */
   partition: function(blocksize, cb) {
-    if (typeof blocksize == "function") {
+    if (Function.isFunction(blocksize)) {
       cb = blocksize;
       blocksize = null;
     }
@@ -421,7 +424,7 @@ $define(Object, {
    * @param  {Object} obj  object to test
    * @return {bool}        object is empty
    */
-  empty: function(obj) {
+  isEmpty: function(obj) {
     if (!obj)
       return true;
     for (var key in obj)
@@ -446,7 +449,10 @@ $define(Object, {
    * @return {bool}       true if obj is an object and not null
    */
   isObject: function(obj) {
-    // Known fastest way to test.
+    /**
+     * Known fastest way to test, the order of the test
+     * following: http://jsperf.com/typeof-vs-bool.
+     */
     return typeof obj === 'object' && obj;
   },
 
@@ -471,20 +477,20 @@ $define(Object.prototype, {
    * @return {Object}             projected object
    */
   project: function(projection, deep, keep) {
-    if (!projection) return this;
-    if (typeof projection != 'object') return this;
+    if (!Object.isObject(projection))
+      return this;
     var self = this;
     var res = {};
     Object.keys(projection).forEach(function(key) {
       var proj = projection[key];
-      if(proj) {
+      if (proj) {
         var el = self[key];
         if (deep && el !== undefined && typeof el == 'object' && typeof proj == "object") {
           res[key] = el.project(projection[key]);
         } else {
-          if(keep)
+          if (keep)
             res[key] = el;
-          else if(el !== undefined)
+          else if (el !== undefined)
             res[key] = el;
         }
       }
