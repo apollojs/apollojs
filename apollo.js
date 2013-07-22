@@ -1,7 +1,7 @@
 var util = require('util');
 var url = require('url');
 var ObjectID = require('mongodb').ObjectID;
-
+var crypto = require('crypto');
 /**
  * Extend an object with another object
  * @param  {Object} obj      object to be extended
@@ -10,29 +10,14 @@ var ObjectID = require('mongodb').ObjectID;
  * @param  {bool} deep       Doing an deep extend (perform extend on every object property)
  * @return {Object}          reference to obj
  */
-function $extend(obj, ext, override, deep) {
+function $extend(obj, ext, override) {
   if (override)
-    if (deep)
-      (function rdext(obj, ext) {
-        for (var key in ext)
-          if (obj[key] instanceof Object)
-            rdext(obj[key], ext[key]);
-      })(obj, ext);
-    else
-      for (var key in ext)
-        obj[key] = ext[key];
+    for (var key in ext)
+      obj[key] = ext[key];
   else
-    if (deep)
-      (function dext(obj, ext) {
-        for (var key in ext)
-          if (!(key in obj))
-            if (obj[key] instanceof Object)
-              rdext(obj[key], ext[key]);
-      })(obj, ext);
-    else
-      for (var key in ext)
-        if (!(key in obj))
-          obj[key] = ext[key];
+    for (var key in ext)
+      if (!(key in obj))
+        obj[key] = ext[key];
 }
 
 /**
@@ -205,16 +190,25 @@ function $strip(object) {
   return object;
 }
 
-/**
- * Get a mongodb type update document
- * @param {Object} origin
- * @param {Object} target
- * @param {Number} depth
- * @param {Function} diffarray
- * @return {Object} update document, null if nothing to update
- */
 
-function $diff(origin, target, depth) {
+/**
+ * generate a mongo type update document which can
+ * update a in-db origin to target.
+ * If arguments.length == 0 return an empty update document
+ * If arguments.length == 1
+ *   If the arg has some update op set, use those updates to
+ *   generate a pure update document
+ *   Otherwise generate a pure $set update document
+ * If argument.length == 2
+ *   generate a update document which can update in-db
+ *   origin to in-db target
+ *
+ * Note: will not update _id field in call cases
+ * @param  {Document} origin in-db origin
+ * @param  {Document} target in-db target
+ * @return {UpdateDocument
+ */
+function $diff(origin, target) {
   const updateOps = [
     "$inc",
     "$rename",
@@ -231,7 +225,9 @@ function $diff(origin, target, depth) {
 
   var diff = {};
   updateOps.forEach(function(op) { diff[op] = {}; });
-  if(arguments.length == 1) {
+  if(arguments.length == 0)
+    return diff;
+  else if(arguments.length == 1) {
     //if origin is a mongodb update document,
     //extract the op fields
     if(updateOps.some(function(op) { return origin[op] })) {
@@ -241,53 +237,59 @@ function $diff(origin, target, depth) {
     }
     //else generate a update document with $set
     else {
-      Object.keys(origin).forEach(function(field) {
-        if(field == '_id') return;
-        if(field[field.length - 1] == '$') return;
-        diff.$set[field] = origin[field];
-      })
+      diff.$set = origin;
+      delete diff.$set._id;
     }
   }
   else {
     if(!target || !origin || typeof target !== 'object' || typeof origin !== 'object')
       throw($error('target and origin must be document'));
 
-    delete target.$diff;
-    delete origin.$diff;
-
     Object.keys(target).forEach(function(field) {
       if(field == '_id') return;
-      if(field[field.length - 1] == '$') return;
 
       if(target[field] === undefined)
         diff.$unset[field] = 1;
       else {
-        var equals = $equals(origin[field], target[field], depth-1);
+        var equals = $equals(origin[field], target[field]);
         if(equals === true)
           return;
         else if(equals === false)
           diff.$set[field] = target[field];
-        else if(equals === 0) {
-          if(origin[field].some(function(o) {
-            if (!target[field].some(function(t) { return $equals(o, t, depth-1) === true; })) {
-              if(diff.$pull[field])
-                return true;
-              else
-                diff.$pull[field] = o;
-            }
-          })) {
-            diff.$set[field] = target[field];
-            delete diff.$pull[field];
-          }
 
-          else if(!diff.$pull[field]) {
-            if(!diff.$push[field]) diff.$push[field] = { $each: [] };
-            target[field].forEach(function(t) {
-              if (!origin[field].some(function(o) { return $equals(t, o, depth-1) === true; })) {
-                diff.$push[field].$each.push(t);
-              }
-            });
-          }
+        //array case
+        else if(equals === 0) {
+
+          origin_hash = {};
+          target_hash = {};
+          origin[field].forEach(function(elem) {
+            origin_hash[JSON.stringify(elem)] = elem;
+          })
+          target[field].forEach(function(elem) {
+            target_hash[JSON.stringify(elem)] = elem;
+          })
+          
+          var pulls = [];
+          Object.keys(origin_hash).forEach(function(ohash) {
+            if(target_hash[ohash]) return;
+            pulls.push(origin_hash[ohash]);
+          })
+          // console.log(pulls);
+          var pushs = []; 
+          Object.keys(target_hash).forEach(function(thash) {
+            if(origin_hash[thash]) return;
+            pushs.push(target_hash[thash]);
+          })
+          // console.log(pushs);
+          if(pulls.length && pushs.length || pulls.length > 1) 
+            diff.$set[field] = target[field];
+          else if(pulls.length)
+            diff.$pull[field] = pulls[0];
+          else if(pushs.length == 1)
+            diff.$push[field] = pushs[0];
+          else if(pushs.length > 1)
+            diff.$push[field] = {$each: pushs};
+
         }
         else if(equals) {
           Object.keys(equals).forEach(function(op) {
@@ -307,13 +309,16 @@ function $diff(origin, target, depth) {
   return notNull? diff: null;
 }
 /**
- * Compare two values's equality
- * @param  {[type]} a     [description]
- * @param  {[type]} b     [description]
- * @param  {[type]} depth [description]
- * @return {[type]}       [description]
+ * compare two values equality
+ * @param  {Object} a     any type value a
+ * @param  {Object} b     any type value b
+ * @return {Mix}       true/false/0/object
+ *         true; indicates a excatly same case
+ *         false; indicates a excatly diff case
+ *         0; indicates a mostly diff case (when the object is array)
+ *         object; an update document of mongo type
  */
-function $equals(a, b, depth) {
+function $equals(a, b) {
   if(typeof b === "function") b = b();
   if(a === b) return true;
   if(a === null) return false;
@@ -326,25 +331,26 @@ function $equals(a, b, depth) {
   if(aIsObjectID ^ bIsObjectID) return false;
   else if(aIsObjectID) return a.equals(b);
 
-  if(!depth) return false;
 
   var aIsArray = Array.isArray(a);
   var bIsArray = Array.isArray(b);
   if(aIsArray ^ bIsArray) return false;
-  else if(aIsArray) {
-    //make sure all of a can be found in b
-    return (a.length == b.length && a.every(function(elem_a) {
-      var used = {};
-      return b.some(function(elem_b, i) {
-        if(used[i]) return false;
-        var eq = $equals(elem_a, elem_b, depth - 1);
-        if(eq === null || eq === true)
-          return used[i] = true;
-        return false;
-      })
-    })) ? true : 0;
-  }
-  return $diff(a, b, depth);
+  else if(aIsArray) return 0;
+
+  var _diff = $diff(a, b);
+  if(_diff === null) return true;
+  return _diff;
+}
+
+/**
+ * get a sha1 hash from the stringify JSON of obj
+ * @param  {Object} obj
+ * @return {String}
+ */
+function $hashObject(obj) {
+  var hasher = crypto.createHash('sha1');
+  hasher.update(JSON.stringify(obj));
+  return hasher.digest('hex');
 }
 $define(global, {
   $extend: $extend,
@@ -361,7 +367,9 @@ $define(global, {
   // $random: $random,
   $wrap: $wrap,
   $strip: $strip,
-  $diff: $diff
+  $diff: $diff,
+  $equals: $equals,
+  $hashObject: $hashObject
 });
 
 $define(String.prototype, {
@@ -559,8 +567,16 @@ $define(Object, {
   }
 });
 $define(Object.prototype, {
+  /**
+   * project this with projectiong, same behaviour with mongodb projection
+   * @param  {Object} projection  An object mapping fields to values
+   * @param  {Boolean} deep       if true, go deep for sub objects
+   * @param  {Boolean} keep       if true, keep undefined field of this
+   * @return {Object}             projected object
+   */
   project: function(projection, deep, keep) {
     if(!projection) return this;
+    if(typeof projection != 'object') return this;
     var self = this;
     var res = {};
     Object.keys(projection).forEach(function(key) {
