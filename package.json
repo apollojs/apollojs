@@ -8,5 +8,8 @@
     "Yan Dong <idy0013@gmail.com>"
   ],
   "main": "./apollo.js",
-  "license" : "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "mongodb": "*"
+  }
 }
