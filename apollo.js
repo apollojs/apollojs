@@ -1,5 +1,6 @@
 var util = require('util');
 var url = require('url');
+var crypto = require('crypto');
 
 /**
  * Extend an object with another object
@@ -9,7 +10,7 @@ var url = require('url');
  * @param  {bool} deep       Doing an deep extend (perform extend on every object property)
  * @return {Object}          reference to obj
  */
-function $extend(obj, ext, override, deep) {
+function $extend(obj, ext, override) {
   if (override)
     if (deep)
       _overrideDeepExtend(obj, ext);
@@ -214,6 +215,17 @@ function $strip(object) {
   return object;
 }
 
+/**
+ * get a sha1 hash from the stringify JSON of obj
+ * @param  {Object} obj
+ * @return {String}
+ */
+function $hashObject(obj) {
+  var hasher = crypto.createHash('sha1');
+  hasher.update(JSON.stringify(obj));
+  return hasher.digest('hex');
+}
+
 $define(global, {
   $extend: $extend,
   $define: $define,
@@ -227,7 +239,9 @@ $define(global, {
   // $bind: $bind,
   $default: $default,
   // $random: $random,
-  $wrap: $wrap
+  $wrap: $wrap,
+  $strip: $strip,
+  $hashObject: $hashObject
 });
 
 $define(String.prototype, {
@@ -425,8 +439,16 @@ $define(Object, {
   }
 });
 $define(Object.prototype, {
+  /**
+   * project this with projectiong, same behaviour with mongodb projection
+   * @param  {Object} projection  An object mapping fields to values
+   * @param  {Boolean} deep       if true, go deep for sub objects
+   * @param  {Boolean} keep       if true, keep undefined field of this
+   * @return {Object}             projected object
+   */
   project: function(projection, deep, keep) {
     if(!projection) return this;
+    if(typeof projection != 'object') return this;
     var self = this;
     var res = {};
     Object.keys(projection).forEach(function(key) {

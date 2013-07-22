@@ -1,4 +1,5 @@
 var ObjectID = require('mongodb').ObjectID;
+var crypto = require('crypto');
 
 /**
  * Get a mongodb type update document
