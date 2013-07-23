@@ -4,7 +4,7 @@
   "description": "A framework to extend global objects with advance features.",
   "version": "1.0.2",
   "private": true,
-  "countributors": [
+  "contributors": [
     "Yan Dong <idy0013@gmail.com>"
   ],
   "scripts": {
