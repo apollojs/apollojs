@@ -389,6 +389,25 @@ $define(Array.prototype, {
       cb(null, re);
     else
       return re;
+  },
+  /**
+   * Flattern a array with sub arrays.
+   * @param  {bool} deep if continue to flatten sub arrays
+   * @return {Array}     flattened array.
+   */
+  flatten: function(deep) {
+    var res = [];
+    for (var i = 0; i < this.length; i++) {
+      if (Array.isArray(this[i])) {
+        if (deep)
+          res.push.apply(res, this[i].flatten(true));
+        else
+          res.push.apply(res, this[i]);
+      } else {
+        res.push(this[i]);
+      }
+    }
+    return res;
   }
 });
 
