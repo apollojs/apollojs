@@ -32,6 +32,7 @@ var kUpdateOps = [
  * @param  {Document} target in-db target
  * @return {UpdateDocument}
  */
+
 function $diff(origin, target) {
 
   if (arguments.length === 0)
@@ -99,19 +100,23 @@ function $diff(origin, target) {
             pushs.push(target_hash[thash]);
           });
           // console.log(pushs);
-          if (pulls.length && pushs.length || pulls.length > 1)
+          if (pulls.length && pushs.length)
             diff.$set[field] = target[field];
-          else if (pulls.length)
+          else if (pulls.length == 1)
             diff.$pull[field] = pulls[0];
+          else if (puuls.length > 1)
+            diff.$pullAll[field] = pulls;
           else if (pushs.length == 1)
             diff.$push[field] = pushs[0];
           else if (pushs.length > 1)
-            diff.$push[field] = {$each: pushs};
+            diff.$push[field] = {
+              $each: pushs
+            };
 
         } else if (equals) {
           Object.keys(equals).forEach(function(op) {
             Object.keys(equals[op]).forEach(function(_field) {
-              diff[op][field+'.'+_field] = equals[op][_field];
+              diff[op][field + '.' + _field] = equals[op][_field];
             });
           });
         }
@@ -138,6 +143,7 @@ function $diff(origin, target) {
  *         0; indicates a mostly diff case (when the object is array)
  *         object; a mongo-style update document
  */
+
 function $equals(a, b) {
   if (typeof b === "function") b = b();
   if (a === b) return true;
