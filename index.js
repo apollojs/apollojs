@@ -529,6 +529,19 @@ $define(Function, {
   }
 });
 
+$define(Function.prototype, {
+  tryCatch: function() {
+    try {
+      return this.apply(null, arguments);
+    } catch(e) {
+      e.fn = this;
+      e.arguments = arguments;
+      console.error(e);
+      console.error(e.stack);
+    }
+  }
+});
+
 $define(Date, {
   /**
    * Cast a value to Date
