@@ -1,5 +1,4 @@
-var util = require('util');
-var crypto = require('crypto');
+(function() {
 
 /**
  * Extend an object with another object
@@ -124,13 +123,25 @@ function $defenum(fn, values) {
 }
 
 /**
+ * Format a string with given pattern.
+ * @param  {string} str pattern
+ * @return {string}     formatted string
+ */
+function $format(str) {
+  var args = arguments;
+  return str.replace(/(.)?\$(\d+)(.)?/g, function(match, before, index, after) {
+    return $default(before, '') + args[parseInt(index, 10)] + $default(after, '');
+  });
+}
+
+/**
  * Making an Error instance with given format and parameters.
  * Note: this is a helper function works like util.format(),
  *   apart from it returns an Error object instead of string.
  * @return {Error} generated Error instance
  */
 function $error() {
-  return new Error(util.format.apply(util, arguments));
+  return new Error($format.apply(null, arguments));
 }
 
 /**
@@ -225,12 +236,13 @@ function $hashObject(obj) {
   return hasher.digest('hex');
 }
 
-$define(global, {
+$define(window, {
   $extend: $extend,
   $define: $define,
   $declare: $declare,
   $inherit: $inherit,
   $defenum: $defenum,
+  $format: $format,
   $error: $error,
   // $prefix: $prefix,
   $clone: $clone,
@@ -591,11 +603,4 @@ $define(Boolean, {
   }
 });
 
-/**
- * Trying to import mongodb extensions
- */
-try {
-  require('./mongo-ext.js');
-} catch(e) {
-
-}
+})();
