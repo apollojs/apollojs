@@ -42,10 +42,6 @@ function $E(name, att) {
   return el;
 }
 
-$define(window, {
-  $E: $E
-});
-
 $define(Element.prototype, {
   setClass: function(cls, set) {
     return set ?
@@ -262,9 +258,6 @@ function Request(method, url, payload, resDataType, callback) {
 ['get', 'post', 'put'].forEach(function(method) {
   Request[method] = Request.bind(Request, method);
 });
-$define(window, {
-  Request: Request
-});
 
 function Tmpl(node, targets, singleton) {
   this.node = node;
@@ -335,9 +328,6 @@ $declare(Tmpl, {
     return node;
   }
 });
-$define(window, {
-  Tmpl: Tmpl
-});
 
 function StyleSheet() {
   var styleSheet = document.head.appendChild(document.createElement('style'));
@@ -374,7 +364,11 @@ $define(CSSStyleSheet.prototype, {
     return rule;
   }
 });
+
 $define(window, {
+  '$E': $E,
+  Request: Request
+  Tmpl: Tmpl,
   StyleSheet: StyleSheet
 });
 
