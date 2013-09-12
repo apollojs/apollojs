@@ -611,3 +611,5 @@ $define(Boolean, {
 // } catch(e) {
 
 // }
+
+require('./utils.js');
