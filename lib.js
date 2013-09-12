@@ -16,127 +16,13 @@ function $A(sel, ele) {
   return (ele || document).querySelectorAll(sel);
 }
 
-function $explict(name, obj) {
-  window[name] = obj;
+function $CA(name, ele) {
+  return (ele || document).getElementsByClassName(name);
 }
 
-function $extend(obj, ext, override, deep) {
-  if (override)
-    if (deep)
-      (function rdext(obj, ext) {
-        for (var key in ext)
-          if (obj[key] instanceof Object)
-            rdext(obj[key], ext[key]);
-      })(obj, ext);
-    else
-      for (var key in ext)
-        obj[key] = ext[key];
-  else
-    if (deep)
-      (function dext(obj, ext) {
-        for (var key in ext)
-          if (!(key in obj))
-            if (obj[key] instanceof Object)
-              rdext(obj[key], ext[key]);
-      })(obj, ext);
-    else
-      for (var key in ext)
-        if (!(key in obj))
-          obj[key] = ext[key];
-}
-
-function $define(object, prototype) {
-  var setterGetterPattern = /^(set|get)([A-Z])(.*)/;
-  var setterGetters = {};
-  for (var key in prototype) {
-    var matches = setterGetterPattern.exec(key);
-    var fn = prototype[key];
-    Object.defineProperty(object, key, {
-      value: fn,
-      writeable: true // false
-    });
-    if (matches) {
-      if (matches[1] === 'set') {
-        if (fn.length !== 1)
-          continue;
-      } else {
-        if (fn.length !== 0)
-          continue;
-      }
-      var name = matches[2].toLowerCase() + matches[3];
-      if (!setterGetters.hasOwnProperty(name))
-        setterGetters[name] = {};
-      setterGetters[name][matches[1]] = fn;
-    }
-  }
-  console.log(setterGetters);
-  Object.defineProperties(object, setterGetters);
-}
-
-function $declare(object, prototype) {
-  object.prototype.constructor = object;
-  $define(object.prototype, prototype);
-}
-
-function $inherit(type, parent, proto) {
-  type.prototype = {
-    constructor: type,
-    __proto__: parent.prototype
-  };
-  if (proto) $define(type.prototype, proto);
-}
-
-function $prefix(obj, prefix) {
-  var res = {};
-  for (var key in obj)
-    res[prefix + key] = obj[key];
-  return res;
-}
-
-function $clone(org) {
-  var obj = {};
-  for (var key in org)
-    obj[key] = org[key];
-  return obj;
-}
-
-function $merge(a, b) {
-  return $extend($clone(a), b);
-}
-
-function $bind(org, $this) {
-  var obj = {};
-  for (var key in org)
-    obj[key] = org[key].bind($this);
-  return obj;
-}
-
-function $default(val, def) {
-  return val === undefined ? def : val;
-}
-
-function $random(val) {
-  return Math.floor(Math.random() * val);
-}
-
-function $printf(str) {
-  var args = arguments;
-  return str.replace(/(.)?\$(\d+)(.)?/g, function(match, before, index, after) {
-    return $default(before, '') + args[parseInt(index, 10)] + $default(after, '');
-  });
-}
-
-function $wrap(obj, Type) {
-  if (obj.__proto__) {
-    obj.__proto__ = Type.prototype;
-  } else {
-    var newObj = Type.__default ? Type.__default() : new Type();
-    $extend(newObj, obj);
-    obj = newObj;
-  }
-  if (Type.__wrap)
-    Type.__wrap(obj);
-  return obj;
+function $C(name, ele) {
+  var els = $CA(name, ele);
+  return els.length > 0 ? els[0] : null;
 }
 
 (function() {
@@ -156,81 +42,9 @@ function $E(name, att) {
   return el;
 }
 
-$explict('$E', $E);
-
-$define(String.prototype, {
-  repeat: function(len) {
-    var res = '';
-    for (var i = 0; i < len; i++)
-      res += this;
-    return res;
-  },
-  paddingLeft: function(ch, len) {
-    if (this.length < len)
-      return ch.repeat(len - this.length) + this;
-    else
-      return this;
-  },
-  paddingRight: function(ch, len) {
-    if (this.length < len)
-      return this + ch.repeat(len - this.length);
-    else
-      return this;
-  }
+$define(window, {
+  $E: $E
 });
-
-$define(Number.prototype, {
-  clamp: function(lb, ub) {
-    var rtn = Math.max(this, lb);
-    if (ub !== undefined) return Math.min(rtn, ub);
-    return rtn;
-  }
-});
-
-$define(Array.prototype, {
-  min: function() {
-    var res = this[0];
-    for (var i = 1; i < this.length; i++)
-      if (this[i] < res)
-        res = this[i];
-    return res;
-  },
-  max: function() {
-    var res = this[0];
-    for (var i = 1; i < this.length; i++)
-      if (this[i] > res)
-        res = this[i];
-    return res;
-  },
-  add: function(val) {
-    if (this.indexOf(val) === -1)
-      return this.push(val);
-    return -1;
-  },
-  remove: function(val) {
-    var idx = this.indexOf(val);
-    if (idx === -1) return null;
-    for (; idx < this.length-1; idx++)
-      this[idx] = this[idx+1];
-    this.pop();
-    return val;
-  },
-  rotate: function(n) {
-    while (n-- > 0)
-      this.unshift(this.pop());
-    return this;
-  }
-});
-if (Array.map === undefined)
-  ['forEach', 'every', 'some', 'filter', 'map', 'reduce', 'reduceRight']
-  .forEach(function(method) {
-    var fn = Array.prototype[method];
-    Object.defineProperty(Array, method, {
-      value: function(a, b, c) {
-        return fn.call(a, b, c);
-      }
-    });
-  });
 
 $define(Element.prototype, {
   setClass: function(cls, set) {
@@ -448,7 +262,9 @@ function Request(method, url, payload, resDataType, callback) {
 ['get', 'post', 'put'].forEach(function(method) {
   Request[method] = Request.bind(Request, method);
 });
-$explict('Request', Request);
+$define(window, {
+  Request: Request
+});
 
 function Tmpl(node, targets, singleton) {
   this.node = node;
@@ -519,7 +335,9 @@ $declare(Tmpl, {
     return node;
   }
 });
-$explict('Tmpl', Tmpl);
+$define(window, {
+  Tmpl: Tmpl
+});
 
 function StyleSheet() {
   var styleSheet = document.head.appendChild(document.createElement('style'));
@@ -556,6 +374,8 @@ $define(CSSStyleSheet.prototype, {
     return rule;
   }
 });
-$explict('StyleSheet', StyleSheet);
+$define(window, {
+  StyleSheet: StyleSheet
+});
 
 })();
