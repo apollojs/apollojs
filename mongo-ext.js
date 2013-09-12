@@ -104,7 +104,7 @@ function $diff(origin, target) {
             diff.$set[field] = target[field];
           else if (pulls.length == 1)
             diff.$pull[field] = pulls[0];
-          else if (puuls.length > 1)
+          else if (pulls.length > 1)
             diff.$pullAll[field] = pulls;
           else if (pushs.length == 1)
             diff.$push[field] = pushs[0];
