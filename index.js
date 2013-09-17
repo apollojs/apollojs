@@ -355,15 +355,25 @@ $define(Array.prototype, {
     this.pop();
   },
   /**
-   * Rotate this array (0->n, 1->n+1, ...)
-   * TODO: improve performance with std implementation
+   * Rotate this array (n->0, n+1->1, ...)
    * @param  {int} n   the offset
    * @return {Array}   this
    */
   rotate: function(n) {
-    while (n-- > 0)
-      this.unshift(this.pop());
-    return this;
+    n = (n+this.length)%this.length;
+    var middle = n;
+    var next = n;
+    var first = 0;
+    while(first < this.length) {
+      var t = this[first];
+      this[first] = this[next];
+      this[next] = t;
+      first ++;
+      next ++;
+      if (next == this.length) next = middle;
+      else if(first == middle) middle = next;
+    }
+    return this
   },
   /**
    * get last element in this array
