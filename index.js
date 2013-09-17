@@ -9,20 +9,22 @@ var crypto = require('crypto');
  * @param  {bool} deep       Doing an deep extend (perform extend on every object property)
  * @return {Object}          reference to obj
  */
+
 function $extend(obj, ext, override, deep) {
-  if (override)
+  if (override) {
     if (deep)
       _overrideDeepExtend(obj, ext);
     else
       for (var key in ext)
         obj[key] = ext[key];
-  else
+  } else {
     if (deep)
       _deepExtend(obj, ext);
     else
       for (var key in ext)
         if (!(key in obj))
           obj[key] = ext[key];
+  }
   return obj;
 }
 
@@ -55,6 +57,7 @@ function _deepExtend(obj, ext) {
  * @param  {Object} prototype extension object
  * @return {Object}           reference to object
  */
+
 function $define(object, prototype) {
   var setterGetterPattern = /^(set|get)([A-Z])(.*)/;
   var setterGetters = {};
@@ -89,6 +92,7 @@ function $define(object, prototype) {
  * @param  {Object} prototype prototype of Class
  * @return {Function}         reference to constructor
  */
+
 function $declare(fn, prototype) {
   fn.prototype.constructor = fn;
   $define(fn.prototype, prototype);
@@ -102,6 +106,7 @@ function $declare(fn, prototype) {
  * @param  {Object} prototype prototype of Class
  * @return {Function}         reference to constructor
  */
+
 function $inherit(fn, parent, prototype) {
   fn.prototype = {
     constructor: fn,
@@ -117,6 +122,7 @@ function $inherit(fn, parent, prototype) {
  * @param  {Object}   values object holding all enumerates want to define
  * @return {Function}        reference to constructor
  */
+
 function $defenum(fn, values) {
   $define(fn, values);
   $define(fn.prototype, values);
@@ -129,6 +135,7 @@ function $defenum(fn, values) {
  *   apart from it returns an Error object instead of string.
  * @return {Error} generated Error instance
  */
+
 function $error() {
   return new Error(util.format.apply(util, arguments));
 }
@@ -151,6 +158,7 @@ function $error() {
  * @param  {Object} org source object
  * @return {Object}     cloned object
  */
+
 function $clone(org) {
   var obj = {};
   for (var key in org) {
@@ -182,6 +190,7 @@ function $bind(org, $this) {
  * @param  {Mixed} def  default value
  * @return {Mixed}
  */
+
 function $default(val, def) {
   return val === undefined ? def : val;
 }
@@ -197,6 +206,7 @@ function $default(val, def) {
  * @param  {Function} Type  wrapping Class
  * @return {Object}         wrapped object
  */
+
 function $wrap(obj, Type) {
   obj.__proto__ = Type.prototype;
   if (Type.__wrap)
@@ -209,6 +219,7 @@ function $wrap(obj, Type) {
  * @param  {Object} object   object to be stripped
  * @return {Object}          object stripped
  */
+
 function $strip(object) {
   object.__proto__ = Object.prototype;
   return object;
@@ -219,6 +230,7 @@ function $strip(object) {
  * @param  {Object} obj
  * @return {String}
  */
+
 function $hashObject(obj) {
   var hasher = crypto.createHash('sha1');
   hasher.update(JSON.stringify(obj));
@@ -351,7 +363,7 @@ $define(Array.prototype, {
     if (index < 0)
       return;
     for (index++; index < this.length; index++)
-      this[index-1] = this[index];
+      this[index - 1] = this[index];
     this.pop();
   },
   /**
@@ -360,18 +372,18 @@ $define(Array.prototype, {
    * @return {Array}   this
    */
   rotate: function(n) {
-    n = (n+this.length)%this.length;
+    n = (n + this.length) % this.length;
     var middle = n;
     var next = n;
     var first = 0;
-    while(first < this.length) {
+    while (first < this.length) {
       var t = this[first];
       this[first] = this[next];
       this[next] = t;
-      first ++;
-      next ++;
+      first++;
+      next++;
       if (next == this.length) next = middle;
-      else if(first == middle) middle = next;
+      else if (first == middle) middle = next;
     }
     return this
   },
@@ -382,7 +394,7 @@ $define(Array.prototype, {
    */
   getBack: function() {
     if (this.length)
-      return this[this.length-1];
+      return this[this.length - 1];
     return undefined;
   },
   /**
@@ -439,25 +451,25 @@ $define(Array.prototype, {
  */
 if (Array.map === undefined)
   ['forEach', 'every', 'some', 'filter', 'map', 'reduce', 'reduceRight', 'slice']
-  .forEach(function(method) {
-    var fn = Array.prototype[method];
-    Object.defineProperty(Array, method, {
-      value: function(a, b, c) {
-        return fn.call(a, b, c);
-      }
+    .forEach(function(method) {
+      var fn = Array.prototype[method];
+      Object.defineProperty(Array, method, {
+        value: function(a, b, c) {
+          return fn.call(a, b, c);
+        }
+      });
     });
-  });
 
 if (String.trim === undefined)
   ['trim', 'trimLeft', 'trimRight']
-  .forEach(function(method) {
-    var fn = String.prototype[method];
-    Object.defineProperty(String, method, {
-      value: function(a) {
-        return fn.call(a);
-      }
+    .forEach(function(method) {
+      var fn = String.prototype[method];
+      Object.defineProperty(String, method, {
+        value: function(a) {
+          return fn.call(a);
+        }
+      });
     });
-  });
 
 $define(Object, {
   /**
@@ -555,7 +567,7 @@ $define(Function.prototype, {
   tryCatch: function() {
     try {
       return this.apply(null, arguments);
-    } catch(e) {
+    } catch (e) {
       e.fn = this;
       e.arguments = arguments;
       console.error(e);
