@@ -305,6 +305,69 @@ $define(Number.prototype, {
     if (ub !== undefined && rtn > ub)
       rtn = ub;
     return rtn;
+  },
+  /**
+   * Shortcut to Math.floor(this)
+   * @return {number} Math.floor(this)
+   */
+  floor: function() {
+    return Math.floor(this);
+  },
+  /**
+   * Shortcut to Math.ceil(this)
+   * @return {number} Math.ceil(this)
+   */
+  ceil: function() {
+    return Math.ceil(this);
+  },
+  /**
+   * Shortcut to Math.round(this) with additional parameters
+   * @param  {number} decimals number of decimal digits to round up to
+   * @return {number}          rounded number
+   */
+  round: function(decimals) {
+    if (decimals) {
+      var unit = Math.pow(10, decimals);
+      return Math.round(this * unit) / unit;
+    }
+    return Math.round(this);
+  },
+  /**
+   * Get the thousands separated number
+   * @param  {number} decimals  number of decimal digits to remain
+   * @param  {string} separator separator
+   * @return {string}           separated number
+   */
+  toGroup: function(decimals, separator) {
+
+    decimals = decimals || 0;
+
+    if (this > -1000 && this < 1000)
+      return this.toFixed(decimals);
+
+    separator = separator || ',';
+
+    var sign = this < 0 ? '-' : '';
+    var tmp = Math.abs(this).toFixed(decimals);
+
+    var intPart, decimalPart;
+    if (decimals > 0) {
+      intPart = tmp.substr(0, tmp.length - decimals - 1);
+      decimalPart = tmp.substr(tmp.length - decimals - 1);
+    } else {
+      intPart = tmp;
+      decimalPart = '';
+    }
+
+    var res = '';
+    for (var pos = 0, len = intPart.length % 3 || 3;
+        pos < intPart.length; pos += len, len = 3) {
+      if (res !== '')
+        res += separator;
+      res += intPart.substr(pos, len);
+    }
+    return sign + res + decimalPart;
+
   }
 });
 
