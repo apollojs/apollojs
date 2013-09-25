@@ -87,21 +87,23 @@ $extend(Element.prototype, {
 
 window.addEventListener('DOMContentLoaded', init, false);
 
-$explict('Dispatcher', {
-  register: function(Type) {
-    types[Type.__type] = Type;
-    console.log(Type.__type, inited);
-    if (inited && Type.init)
-      Type.init();
-  },
-  unregister: function(Type) {
-    delete types[Type.__type];
-  },
-  fire: function(eventType, data) {
-    for (var type in types) {
-      var Type = types[type];
-      if (Type[eventType])
-        Type[eventType](data);
+$define(window, {
+  Dispatcher: {
+    register: function(Type) {
+      types[Type.__type] = Type;
+      console.log(Type.__type, inited);
+      if (inited && Type.init)
+        Type.init();
+    },
+    unregister: function(Type) {
+      delete types[Type.__type];
+    },
+    fire: function(eventType, data) {
+      for (var type in types) {
+        var Type = types[type];
+        if (Type[eventType])
+          Type[eventType](data);
+      }
     }
   }
 });

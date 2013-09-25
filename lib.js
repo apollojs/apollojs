@@ -5,6 +5,11 @@ function $I(id) {
 }
 
 function $T(tag, ele) {
+  var els = $TA(tag, ele);
+  return els.length > 0 ? els[0] : null;
+}
+
+function $TA(tag, ele) {
   return (ele || document).getElementsByTagName(tag);
 }
 
@@ -102,6 +107,24 @@ $define(Element.prototype, {
   },
   dispose: function() {
     return this.parentNode.removeChild(this);
+  },
+  setAttr: function(name, value) {
+    this.setAttribute(name, value);
+    return this;
+  },
+  getAttr: function(name, json) {
+    var value = this.getAttribute(name);
+    if (json)
+      return JSON.parse(value);
+    return value;
+  },
+  setTextValue: function(value) {
+    if (this.firstChild && this.firstChild.nodeType === 3) {
+      this.firstChild.nodeValue = value;
+      return this;
+    }
+    this.appendChild(document.createTextNode(value));
+    return this;
   }
 });
 
@@ -232,10 +255,6 @@ function Request(method, url, payload, resDataType, callback) {
         callback(null, $wrap(res, resDataType));
       else
         callback(null, res);
-    } else if (xhr.status === 401) {
-      console.error(401, res);
-      location.href = 'https://sso.stu.edu.cn/login?service=' +
-          encodeURIComponent(location.href);
     } else {
       callback(xhr.status, res);
     }
@@ -244,7 +263,7 @@ function Request(method, url, payload, resDataType, callback) {
     console.error(evt);
     callback(evt);
   };
-  xhr.open(method, 'https://dev.stu.edu.cn/services/api/' + url, true);
+  xhr.open(method, url, true);
   xhr.setRequestHeader('Accept', 'application/json');
   if (method.toLowerCase() !== 'get') {
     payload = JSON.stringify(payload);
@@ -367,7 +386,7 @@ $define(CSSStyleSheet.prototype, {
 
 $define(window, {
   '$E': $E,
-  Request: Request
+  Request: Request,
   Tmpl: Tmpl,
   StyleSheet: StyleSheet
 });
