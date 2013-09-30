@@ -54,13 +54,16 @@ function _deepExtend(obj, ext) {
  *   which could lead to severe performance issue.
  * @param  {Object} object    target object
  * @param  {Object} prototype extension object
+ * @param  {bool} preserve    preserve existing property
  * @return {Object}           reference to object
  */
 
-function $define(object, prototype) {
+function $define(object, prototype, preserve) {
   var setterGetterPattern = /^(set|get)([A-Z])(.*)/;
   var setterGetters = {};
   for (var key in prototype) {
+    if (preserve && (key in object))
+      continue;
     var matches = setterGetterPattern.exec(key);
     var fn = prototype[key];
     Object.defineProperty(object, key, {
