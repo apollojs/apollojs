@@ -135,8 +135,11 @@ function $defenum(fn, values) {
  */
 function $format(str) {
   var args = arguments;
-  return str.replace(/(.)?\$(\d+)(.)?/g, function(match, before, index, after) {
-    return $default(before, '') + args[parseInt(index, 10)] + $default(after, '');
+  var index = 1;
+  return str.replace(/%([sdj])/g, function(all, type) {
+    if (type === 'j')
+      return JSON.stringify(args[index++]);
+    return args[index++];
   });
 }
 
@@ -300,18 +303,6 @@ $define(String.prototype, {
     if (this.length < length)
       return this + ch.repeat(length - this.length);
     return this;
-  },
-
-  startsWith: function(str) {
-    if (str === null || str === undefined || str.length === 0)
-      return true;
-    return this.substr(0, str.length) === str;
-  },
-
-  endsWith: function(str) {
-    if (str === null || str === undefined || str.length === 0)
-      return true;
-    return this.substr(-str.length) === str;
   }
 });
 

@@ -118,6 +118,9 @@ $define(Element.prototype, {
       return JSON.parse(value);
     return value;
   },
+  removeAttr: function(name) {
+    this.removeAttribute(name);
+  },
   setTextValue: function(value) {
     if (this.firstChild && this.firstChild.nodeType === 3) {
       this.firstChild.nodeValue = value;
@@ -177,7 +180,7 @@ $define(Element.prototype, document.documentElement.dataset ? {
   getData: function(name) {
     return this.dataset[name];
   },
-  unsetData: function(name) {
+  removeData: function(name) {
     delete this.dataset[name];
     return this;
   }
@@ -189,7 +192,7 @@ $define(Element.prototype, document.documentElement.dataset ? {
   getData: function(name) {
     return this.getAttribute(toDatasetName(name));
   },
-  unsetData: function(name) {
+  removeData: function(name) {
     this.removeAttribute(toDatasetName(name));
     return this;
   }
@@ -209,7 +212,7 @@ $define(Node.prototype, {
   },
   findTypedAncestor: function(noself) {
     for (var node = noself ? this.parentNode : this; node && node !== document; node = node.parentNode)
-      if (node.getAttribute('data-type') !== undefined)
+      if (node.getAttribute('data-type') !== null)
         return node;
     return null;
   },
@@ -384,11 +387,89 @@ $define(CSSStyleSheet.prototype, {
   }
 });
 
+/**
+ * Craete a event throttle for time critical events
+ *   eg. Resize, MouseMove, KeyDown etc.
+ * @param {number}   rate               Sample Rate in Hz
+ * @param {number}   minRate            Minimal sample rate in Hz
+ * @param {number}   finalDelay         Delaying some time after all events were
+ *                                      emitted.
+ * @param {Function} slowHandler        will be called in rate or minRate if
+ *                                      event continuing emitted
+ * @param {Function} fastHandler(event) will be called after each event emitted
+ * Note that: slowHandler won't be called with event object,
+ *   please store it yourself in fastHandler. And slowHandler will
+ *   always be called after all event fired.
+ */
+function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
+
+  var animationFrameTimer = false;
+  var handler;
+
+  if (rate < 0) {
+    // This is a automatic throttle, which uses requestAnimationFrame
+    handler = function(evt) {
+      if (!animationFrameTimer) {
+        animationFrameTimer = true;
+        requestAnimationFrame(slowHandlerWrapperForAnimationFrame);
+      }
+      if (handler.fastHandler)
+        return handler.fastHandler(evt);
+    };
+  } else {
+    var delay = 1000 / rate;
+    var maxDelay = 1000 / minRate;
+    var delayTimer = null, maxDelayTimer = null, finalDelayTimer = null;
+    handler = function(evt) {
+      clearTimeout(delayTimer);
+      delayTimer = setTimeout(slowHandlerWrapper, delay);
+      clearTimeout(finalDelayTimer);
+      finalDelayTimer = setTimeout(slowHandlerWrapper, finalDelay);
+      if (maxDelayTimer === null) {
+        maxDelayTimer = setTimeout(slowHandlerWrapper, maxDelay);
+      }
+      if (handler.fastHandler)
+        return handler.fastHandler(evt);
+    };
+  }
+
+  handler.slowHandler = slowHandler;
+  handler.fastHandler = fastHandler;
+
+  return handler;
+
+  function slowHandlerWrapper() {
+    clearTimeout(maxDelayTimer);
+    maxDelayTimer = null;
+    handler.slowHandler();
+  }
+
+  function slowHandlerWrapperForAnimationFrame() {
+    animationFrameTimer = false;
+    handler.slowHandler();
+  }
+
+}
+
 $define(window, {
-  '$E': $E,
+  $E: $E,
   Request: Request,
   Tmpl: Tmpl,
-  StyleSheet: StyleSheet
+  StyleSheet: StyleSheet,
+  EventThrottle: EventThrottle
 });
+
+if (!window.requestAnimationFrame) {
+  $define(window, {
+    requestAnimationFrame: window.mozRequestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.msRequestAnimationFrame || function(callback) {
+        return setTimeout(callback, 25);
+      },
+    cancelAnimationFrame: window.mozCancelAnimationFrame ||
+      window.webkitCancelAnimationFrame ||
+      window.msCancelAnimationFrame || clearTimeout
+    });
+}
 
 })();
