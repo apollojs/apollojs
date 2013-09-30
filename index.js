@@ -711,4 +711,5 @@ $define(RegExp, {
 
 // }
 
+require('./extend.js');
 require('./utils.js');
