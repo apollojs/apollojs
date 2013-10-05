@@ -298,14 +298,45 @@ $define(String.prototype, {
   },
   /**
    * Padding this to given length with specified char from right.
-   * @param  {char} ch     padding char
-   * @param  {int} length  desired length
-   * @return {string}      result
+   * @param  {char} ch    padding char
+   * @param  {int} length desired length
+   * @return {string}     result
    */
   paddingRight: function(ch, length) {
     if (this.length < length)
       return this + ch.repeat(length - this.length);
     return this;
+  },
+  /**
+   * Tests if this string starts with the given one.
+   * @param  {string} str string to test with
+   * @return {bool}       result
+   */
+  startsWith: function(str) {
+    if (str === null || str === undefined || str.length === 0)
+      return true;
+    return this.substr(0, str.length) === str;
+  },
+  /**
+   * Tests if this string ends with the given one.
+   * @param  {string} str string to test with
+   * @return {bool}       result
+   */
+  endsWith: function(str) {
+    if (str === null || str === undefined || str.length === 0)
+      return true;
+    return this.substr(-str.length) === str;
+  },
+  /**
+   * Return a string in it's title form.
+   * @return {string} string in title case
+   * Note: if a word containing upper case, nothing
+   *   will be done.
+   */
+  toTitleCase: function() {
+    return this.replace(/\b([a-z])(['a-z]*)\b/g, function(all, letter, rest) {
+      return letter.toUpperCase() + rest;
+    });
   }
 });
 
@@ -474,25 +505,6 @@ $define(Array.prototype, {
   getFront: function() {
     return this[0];
   },
-  /*
-   * @param {int} blocksize
-   * @param {function} cb callback
-   * @return {array.$ = array}
-   */
-  partition: function(blocksize, cb) {
-    if (Function.isFunction(blocksize)) {
-      cb = blocksize;
-      blocksize = null;
-    }
-    blocksize = blocksize ? blocksize : 25;
-    var re = [];
-    for (var i = 0; i < this.length; i += blocksize)
-      re.push(this.slice(i, i + blocksize));
-    if (cb)
-      cb(null, re);
-    else
-      return re;
-  },
   /**
    * Flattern a array with sub arrays.
    * @param  {bool} deep if continue to flatten sub arrays
@@ -563,7 +575,6 @@ $define(Object, {
       return obj[k];
     });
   },
-
   /**
    * Vague but fast isObject test
    * Note: new String(), function, array, etc will return true
@@ -575,9 +586,8 @@ $define(Object, {
      * Known fastest way to test, the order of the test
      * following: http://jsperf.com/typeof-vs-bool.
      */
-    return typeof obj === 'object' && obj;
+    return obj && typeof obj === 'object';
   },
-
   /**
    * Strict isObject test, only pure Object will return true
    * Note: only {} will return true
@@ -587,7 +597,6 @@ $define(Object, {
   isObjectStrict: function(obj) {
     return Object.prototype.toString.call(obj) === '[object Object]';
   }
-
 });
 
 $define(Object.prototype, {
@@ -629,19 +638,6 @@ $define(Function, {
    */
   isFunction: function(obj) {
     return typeof obj === 'function';
-  }
-});
-
-$define(Function.prototype, {
-  tryCatch: function() {
-    try {
-      return this.apply(null, arguments);
-    } catch (e) {
-      e.fn = this;
-      e.arguments = arguments;
-      console.error(e);
-      console.error(e.stack);
-    }
   }
 });
 

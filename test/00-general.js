@@ -78,6 +78,21 @@ describe('String', function() {
       'ab'.endsWith('b').should.be.ok;
     });
   });
+  describe('toTitleCase', function() {
+    it('should return correct title case form of A', function() {
+      'a'.toTitleCase().should.eql('A');
+      ''.toTitleCase().should.eql('');
+      'ab'.toTitleCase().should.eql('Ab');
+      'abc'.toTitleCase().should.eql('Abc');
+      'abc a def'.toTitleCase().should.eql('Abc A Def');
+      'abc a def  '.toTitleCase().should.eql('Abc A Def  ');
+      '  abc def  '.toTitleCase().should.eql('  Abc Def  ');
+      'abc def\'s'.toTitleCase().should.eql('Abc Def\'s');
+      'abc dEef'.toTitleCase().should.eql('Abc dEef');
+      'abc Def'.toTitleCase().should.eql('Abc Def');
+      'abc DEF'.toTitleCase().should.eql('Abc DEF');
+    });
+  });
 });
 
 describe('Number', function() {
