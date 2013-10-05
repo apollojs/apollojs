@@ -249,8 +249,8 @@ $define(Node.prototype, {
 
 /**
  * Request a web resource
- * @param {string}   method                 method of the text
- * @param {string}   url                    url of the text
+ * @param {string}   method                 method of the request
+ * @param {string}   url                    url of the request
  * @param {Object}   payload                payload of the request
  * @param {mixed}    resDataType            wrap the response with
  *                                          the given function's prototype
@@ -260,7 +260,7 @@ $define(Node.prototype, {
  *                                          was given;
  *                                          the given object if a object
  *                                          was given;
- *                                          return response.text if null
+ *                                          return responseText if null
  *                                          was given.
  * @param {Function} callback(err, res/xhr) callback function
  * @param {Function} progress(evt)          progress callback
@@ -296,10 +296,17 @@ function Request(method, url, payload, resDataType, callback, progress) {
       console.log(progress);
     }
   }
-  xhr.open(method, url, true);
+  method = method.toUpperCase();
+  if (method != 'GET' && method != 'POST') {
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('x-http-method-override', method);
+  } else {
+    xhr.open(method, url, true);
+  }
   if (resDataType)
     xhr.setRequestHeader('Accept', 'application/json');
-  if (method.toLowerCase() !== 'get') {
+
+  if (method == 'POST' || method == 'PUT') {
     payload = JSON.stringify(payload);
     xhr.setRequestHeader('Content-Type', 'application/json');
     // xhr.setRequestHeader('Content-Length', payload.length);
@@ -310,8 +317,8 @@ function Request(method, url, payload, resDataType, callback, progress) {
   // Return Xhr object, so one may call to abort to the request
   return xhr;
 }
-['get', 'post', 'put'].forEach(function(method) {
-  Request[method] = Request.bind(Request, method);
+['get', 'post', 'put', 'delete', 'head'].forEach(function(method) {
+  Request[method] = Request.bind(Request, method.toUpperCase());
 });
 
 function Tmpl(node, targets, singleton) {
