@@ -34,8 +34,9 @@ function $C(name, ele) {
 
 var elementCache = {};
 function $E(name, att) {
-  var el = elementCache.hasOwnProperty(name) ? elementCache[name].cloneNode(true)
-         : document.createElement(name);
+  if (!elementCache[name])
+    elementCache[name] = document.createElement(name);
+  var el = elementCache[name].cloneNode(false);
   for (var i = 1; i < arguments.length; i++)
     if (arguments[i] instanceof HTMLElement)
       el.appendChild(arguments[i]);
@@ -108,7 +109,9 @@ $define(Element.prototype, {
   dispose: function() {
     return this.parentNode.removeChild(this);
   },
-  setAttr: function(name, value) {
+  setAttr: function(name, value, json) {
+    if (json)
+      value = JSON.stringify(value);
     this.setAttribute(name, value);
     return this;
   },
@@ -244,30 +247,58 @@ $define(Node.prototype, {
   }
 });
 
-function Request(method, url, payload, resDataType, callback) {
+/**
+ * Request a web resource
+ * @param {string}   method                 method of the text
+ * @param {string}   url                    url of the text
+ * @param {Object}   payload                payload of the request
+ * @param {mixed}    resDataType            wrap the response with
+ *                                          the given function's prototype
+ *                                          if a function was given;
+ *                                          merge the response to
+ *                                          return a JSON object if JSON
+ *                                          was given;
+ *                                          the given object if a object
+ *                                          was given;
+ *                                          return response.text if null
+ *                                          was given.
+ * @param {Function} callback(err, res/xhr) callback function
+ * @param {Function} progress(evt)          progress callback
+ */
+function Request(method, url, payload, resDataType, callback, progress) {
+
   var xhr = new XMLHttpRequest();
   xhr.onload = function(evt) {
-    var res = null;
-    try {
-      res = JSON.parse(xhr.responseText);
-    } catch(e) {
-      callback(e, null);
+    if (xhr.status >= 200 && xhr.status <= 207) {
+      if (resDataType) {
+        try {
+          var res = JSON.parse(xhr.responseText);
+        } catch(e) {
+          return callback(e, xhr);
+        }
+        if (resDataType === JSON)
+            return callback(null, res);
+        if (Function.isFunction(resDataType))
+          return callback(null, $wrap(res, resDataType));
+        return callback(null, $extend(resDataType, res));
+      }
+      return callback(null, xhr.responseText);
     }
-    if (xhr.status === 200) {
-      if (resDataType)
-        callback(null, $wrap(res, resDataType));
-      else
-        callback(null, res);
-    } else {
-      callback(xhr.status, res);
-    }
+    callback(xhr.status, xhr);
   };
   xhr.onerror = function(evt) {
-    console.error(evt);
-    callback(evt);
+    callback(evt, xhr);
   };
+  if (progress) {
+    if (typeof XMLHttpRequestProgressEvent !== 'undefined') {
+      xhr.onprogress = progress;
+    } else {
+      console.log(progress);
+    }
+  }
   xhr.open(method, url, true);
-  xhr.setRequestHeader('Accept', 'application/json');
+  if (resDataType)
+    xhr.setRequestHeader('Accept', 'application/json');
   if (method.toLowerCase() !== 'get') {
     payload = JSON.stringify(payload);
     xhr.setRequestHeader('Content-Type', 'application/json');
@@ -276,6 +307,8 @@ function Request(method, url, payload, resDataType, callback) {
   } else {
     xhr.send(null);
   }
+  // Return Xhr object, so one may call to abort to the request
+  return xhr;
 }
 ['get', 'post', 'put'].forEach(function(method) {
   Request[method] = Request.bind(Request, method);
