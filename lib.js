@@ -4,21 +4,21 @@ function $I(id) {
   return document.getElementById(id);
 }
 
+function $TA(tag, ele) {
+  return (ele || document).getElementsByTagName(tag);
+}
+
 function $T(tag, ele) {
   var els = $TA(tag, ele);
   return els.length > 0 ? els[0] : null;
 }
 
-function $TA(tag, ele) {
-  return (ele || document).getElementsByTagName(tag);
-}
-
-function $(sel, ele) {
-  return (ele || document).querySelector(sel);
-}
-
-function $A(sel, ele) {
+function $SA(sel, ele) {
   return (ele || document).querySelectorAll(sel);
+}
+
+function $S(sel, ele) {
+  return (ele || document).querySelector(sel);
 }
 
 function $CA(name, ele) {
@@ -105,9 +105,6 @@ $define(Element.prototype, {
       node.removeClass('MEASURING');
     }, 0);
     return this;
-  },
-  dispose: function() {
-    return this.parentNode.removeChild(this);
   },
   setAttr: function(name, value, json) {
     if (json)
@@ -207,29 +204,35 @@ $define(Node.prototype, {
       if (this === node) return true;
     return false;
   },
-  findAncestorOfType: function(type, noself) {
-    for (var node = noself ? this.parentNode : this; node && node !== document; node = node.parentNode)
+  findAncestorOfType: function(type, noself, blocker) {
+    blocker = blocker || document;
+    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
       if (node.getAttribute('data-type') === Type.__type)
         return node;
     return null;
   },
-  findTypedAncestor: function(noself) {
-    for (var node = noself ? this.parentNode : this; node && node !== document; node = node.parentNode)
-      if (node.getAttribute('data-type') !== null)
-        return node;
-    return null;
-  },
-  findAncestorOfTagName: function(tagname, noself) {
-    for (var node = noself ? this.parentNode : this; node && node !== document; node = node.parentNode)
+  findAncestorOfTagName: function(tagname, noself, blocker) {
+    blocker = blocker || document;
+    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
       if (node.tagName === tagname)
         return node;
     return null;
   },
-  findAncestorHasAttribute: function(attr, noself) {
-    for (var node = noself ? this.parentNode : this; node && node !== document; node = node.parentNode)
+  findAncestorHasAttribute: function(attr, noself, blocker) {
+    blocker = blocker || document;
+    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
       if (node.hasAttribute(attr))
         return node;
     return null;
+  },
+  findTypedAncestor: function(noself, blocker) {
+    return this.findAncestorHasAttribute('data-type', noself, blocker);
+  },
+  extract: function() {
+    return this.parentNode.removeChild(this);
+  },
+  replaceWith: function(node) {
+    return this.parentNode.replaceChild(node, this);
   },
   clear: function() {
     while (this.firstChild)
@@ -342,7 +345,7 @@ function Tmpl(node, targets, singleton) {
   }
   this.begins.push(this.targets.length);
   if (!singleton)
-    node.dispose();
+    node.extract();
 }
 $declare(Tmpl, {
   generate: function(data) {
@@ -371,11 +374,11 @@ $declare(Tmpl, {
   // },
   // getElement: function(node, index) {
   //   var selector = this.targets[this.begins[index]].split('@');
-  //   return selector[0] === '.' ? node : $(selector[0], node);
+  //   return selector[0] === '.' ? node : $S(selector[0], node);
   // },
   parse: function(that, selector) {
     selector = selector.split('@');
-    var node = selector[0] === '.' ? that : $(selector[0], that);
+    var node = selector[0] === '.' ? that : $S(selector[0], that);
     if (selector[1]) {
       var attr = node.getAttributeNode(selector[1]);
       if (!attr) {
@@ -397,9 +400,6 @@ function StyleSheet() {
   return document.styleSheets[document.styleSheets.length-1];
 }
 $define(CSSStyleSheet.prototype, {
-  empty: function() {
-    return this.cssRules.length === 0;
-  },
   clear: function() {
     this.disabled = true;
     while (this.cssRules.length > 0)
@@ -424,6 +424,14 @@ $define(CSSStyleSheet.prototype, {
       for (var name in style)
         rule.style[name] = style[name];
     return rule;
+  },
+  removeRule: function(rule) {
+    for (var i = 0; i < this.cssRules.length; i++) {
+      if (this.cssRules[i] === rule) {
+        this.deleteRule(i);
+        return;
+      }
+    }
   }
 });
 

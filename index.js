@@ -342,7 +342,7 @@ $define(String.prototype, {
 
 $define(Number.prototype, {
   /**
-   * Clamp a this to given range [lb, ub]
+   * Clamp current value to the given range [lb, ub]
    * @param  {number} lb lower bound
    * @param  {number} ub upper bound
    * @return {number}    result
