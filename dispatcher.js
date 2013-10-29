@@ -47,7 +47,7 @@ function init() {
     }, false);
   });
   inited = true;
-};
+}
 
 $define(Element.prototype, {
   getInstance: function() {
