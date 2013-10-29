@@ -443,7 +443,7 @@ $define(CSSStyleSheet.prototype, {
 });
 
 /**
- * Craete a event throttle for time critical events
+ * Create a event throttle for time critical events
  *   eg. Resize, MouseMove, KeyDown etc.
  * @param {number}   rate               Sample Rate in Hz
  * @param {number}   minRate            Minimal sample rate in Hz
@@ -479,10 +479,10 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
       clearTimeout(delayTimer);
       delayTimer = setTimeout(slowHandlerWrapper, delay);
       clearTimeout(finalDelayTimer);
-      finalDelayTimer = setTimeout(slowHandlerWrapper, finalDelay);
-      if (maxDelayTimer === null) {
+      if (finalDelay > 0)
+        finalDelayTimer = setTimeout(slowHandlerWrapper, finalDelay);
+      if (maxDelayTimer === null && minRate > 0)
         maxDelayTimer = setTimeout(slowHandlerWrapper, maxDelay);
-      }
       if (handler.fastHandler)
         return handler.fastHandler(evt);
     };
