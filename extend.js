@@ -11,5 +11,11 @@ $define(String.prototype, {
     if (str === null || str === undefined || str.length === 0)
       return true;
     return this.substr(-str.length) === str;
+  },
+  trimLeft: function() {
+    return this.replace(/^\s+/, '');
+  },
+  trimRight: function() {
+    return this.replace(/\s+$/, '');
   }
 }, true);
