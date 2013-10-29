@@ -225,7 +225,7 @@ $define(Node.prototype, {
         return node;
     return null;
   },
-  findAncestorHasAttribute: function(attr, noself, blocker) {
+  findAncestorWithAttribute: function(attr, noself, blocker) {
     blocker = blocker || document;
     for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
       if (node.hasAttribute(attr))
@@ -233,7 +233,7 @@ $define(Node.prototype, {
     return null;
   },
   findTypedAncestor: function(noself, blocker) {
-    return this.findAncestorHasAttribute('data-type', noself, blocker);
+    return this.findAncestorWithAttribute('data-type', noself, blocker);
   },
   extract: function() {
     return this.parentNode.removeChild(this);
