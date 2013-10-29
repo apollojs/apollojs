@@ -389,7 +389,10 @@ function Tmpl(node, targets, singleton) {
     node.extract();
 }
 $declare(Tmpl, {
-  generate: function(data) {
+  generate: function() {
+    var data = arguments;
+    if (Array.isArray(data[0]))
+      data = data[0];
     // if (data) for (var i = 0, l = Math.min(this.fields.length, this.begins[Math.min(this.begins.length-1, data.length)]); i < l; i++)
       // this.fields[i].nodeValue = data[this.mapping[i]];
     for (var i = 0; i < this.fields.length; i++)
