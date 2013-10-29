@@ -135,8 +135,35 @@ $define(Element.prototype, {
     }
     this.appendChild(document.createTextNode(value));
     return this;
+  },
+  disableScrollPropagation: function() {
+    if (document.body.onmousewheel !== undefined)
+      this.addEventListener('mousewheel', disableScrollPropagation, false);
+    else
+      this.addEventListener('wheel', disableScrollPropagation, false);
+    return this;
+  },
+  enableScrollPropagation: function() {
+    if (document.body.onmousewheel !== undefined)
+      this.removeEventListener('mousewheel', disableScrollPropagation, false);
+    else
+      this.removeEventListener('wheel', disableScrollPropagation, false);
+    return this;
   }
 });
+
+function disableScrollPropagation(evt) {
+  // console.log(evt.wheelDeltaY);
+  // debugger;
+  // console.log(Object.keys(evt));
+  var deltaY = evt.wheelDeltaY || -evt.deltaY || evt.wheelDelta;
+  if (deltaY > 0) {
+    if (this.scrollTop <= 0)
+      evt.preventDefault();
+  } else if (this.scrollTop + this.clientHeight >= this.scrollHeight) {
+    evt.preventDefault();
+  }
+}
 
 // for shitting IE9.
 $define(Element.prototype, document.documentElement.classList ? {
