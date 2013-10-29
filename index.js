@@ -10,17 +10,18 @@
  */
 
 function $extend(obj, ext, override, deep) {
+  var key;
   if (override) {
     if (deep)
       _overrideDeepExtend(obj, ext);
     else
-      for (var key in ext)
+      for (key in ext)
         obj[key] = ext[key];
   } else {
     if (deep)
       _deepExtend(obj, ext);
     else
-      for (var key in ext)
+      for (key in ext)
         if (!(key in obj))
           obj[key] = ext[key];
   }
@@ -70,19 +71,19 @@ function $define(object, prototype, preserve) {
       value: fn,
       writable: true
     });
-    if (matches) {
-      if (matches[1] === 'set') {
-        if (fn.length !== 1)
-          continue;
-      } else {
-        if (fn.length !== 0)
-          continue;
-      }
-      var name = matches[2].toLowerCase() + matches[3];
-      if (!setterGetters.hasOwnProperty(name))
-        setterGetters[name] = {};
-      setterGetters[name][matches[1]] = fn;
-    }
+    // if (matches) {
+    //   if (matches[1] === 'set') {
+    //     if (fn.length !== 1)
+    //       continue;
+    //   } else {
+    //     if (fn.length !== 0)
+    //       continue;
+    //   }
+    //   var name = matches[2].toLowerCase() + matches[3];
+    //   if (!setterGetters.hasOwnProperty(name))
+    //     setterGetters[name] = {};
+    //   setterGetters[name][matches[1]] = fn;
+    // }
   }
   Object.defineProperties(object, setterGetters);
   return object;
@@ -110,11 +111,22 @@ function $declare(fn, prototype) {
  */
 
 function $inherit(fn, parent, prototype) {
-  fn.prototype = {
-    constructor: fn,
-    __proto__: parent.prototype
-  };
-  if (prototype) $define(fn.prototype, prototype);
+  if (fn.__proto__ === undefined) {
+    // Fix IE support
+    var proto = {};
+    Object.getOwnPropertyNames(parent.prototype).forEach(function(name) {
+      proto[name] = parent.prototype[name];
+    });
+    proto.constructor = fn;
+    $define(fn.prototype, proto);
+  } else {
+    fn.prototype = {
+      constructor: fn,
+      __proto__: parent.prototype
+    };
+  }
+  if (prototype)
+    $define(fn.prototype, prototype);
   return fn;
 }
 
@@ -171,17 +183,14 @@ function $error() {
 // }
 
 /**
- * Generates a shallow copy of an Object.
+ * Generates a copy of an Object.
  * @param  {Object} org source object
+ * @param  {bool} deep  perform a deep clone
  * @return {Object}     cloned object
  */
 
-function $clone(org) {
-  var obj = {};
-  for (var key in org) {
-    obj[key] = org[key];
-  }
-  return obj;
+function $clone(obj, deep) {
+  return $extend({}, obj, true, deep);
 }
 
 /**
@@ -348,7 +357,7 @@ $define(Number.prototype, {
    * @return {number}    result
    */
   clamp: function(lb, ub) {
-    var rtn = this;
+    var rtn = Number(this);
     if (lb !== undefined && rtn < lb)
       rtn = lb;
     if (ub !== undefined && rtn > ub)
@@ -485,7 +494,7 @@ $define(Array.prototype, {
       if (next == this.length) next = middle;
       else if (first == middle) middle = next;
     }
-    return this
+    return this;
   },
   /**
    * get last element in this array
@@ -599,36 +608,36 @@ $define(Object, {
   }
 });
 
-$define(Object.prototype, {
-  /**
-   * project this with projectiong, same behaviour with mongodb projection
-   * @param  {Object} projection  An object mapping fields to values
-   * @param  {Boolean} deep       if true, go deep for sub objects
-   * @param  {Boolean} keep       if true, keep undefined field of this
-   * @return {Object}             projected object
-   */
-  project: function(projection, deep, keep) {
-    if (!Object.isObject(projection))
-      return this;
-    var self = this;
-    var res = {};
-    Object.keys(projection).forEach(function(key) {
-      var proj = projection[key];
-      if (proj) {
-        var el = self[key];
-        if (deep && el !== undefined && typeof el == 'object' && typeof proj == "object") {
-          res[key] = el.project(projection[key]);
-        } else {
-          if (keep)
-            res[key] = el;
-          else if (el !== undefined)
-            res[key] = el;
-        }
-      }
-    });
-    return res;
-  }
-});
+// $define(Object.prototype, {
+//   /**
+//    * project this with projectiong, same behaviour with mongodb projection
+//    * @param  {Object} projection  An object mapping fields to values
+//    * @param  {Boolean} deep       if true, go deep for sub objects
+//    * @param  {Boolean} keep       if true, keep undefined field of this
+//    * @return {Object}             projected object
+//    */
+//   project: function(projection, deep, keep) {
+//     if (!Object.isObject(projection))
+//       return this;
+//     var self = this;
+//     var res = {};
+//     Object.keys(projection).forEach(function(key) {
+//       var proj = projection[key];
+//       if (proj) {
+//         var el = self[key];
+//         if (deep && el !== undefined && typeof el == 'object' && typeof proj == "object") {
+//           res[key] = el.project(projection[key]);
+//         } else {
+//           if (keep)
+//             res[key] = el;
+//           else if (el !== undefined)
+//             res[key] = el;
+//         }
+//       }
+//     });
+//     return res;
+//   }
+// });
 
 $define(Function, {
   /**
@@ -685,7 +694,7 @@ $define(Boolean, {
     if (obj === true || obj === false)
       return obj;
     if (typeof obj === 'string')
-      return /^(true|yes|ok|y|on)$/i.test(obj);
+      return (/^(true|yes|ok|y|on)$/i).test(obj);
     return Boolean(obj);
   }
 });
