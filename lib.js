@@ -286,42 +286,44 @@ $define(Node.prototype, {
 
 /**
  * Request a web resource
- * @param {string}   method                 method of the request
- * @param {string}   url                    url of the request
- * @param {Object}   payload                payload of the request
- * @param {mixed}    resDataType            wrap the response with
- *                                          the given function's prototype
- *                                          if a function was given;
- *                                          merge the response to
- *                                          return a JSON object if JSON
- *                                          was given;
- *                                          the given object if a object
- *                                          was given;
- *                                          return responseText if null
- *                                          was given.
- * @param {Function} callback(err, res/xhr) callback function
- * @param {Function} progress(evt)          progress callback
+ * @param {string}   method                  method of the request
+ * @param {string}   url                     url of the request
+ * @param {Object}   headers                 headers for the request
+ * @param {Object}   payload                 payload of the request
+ * @param {mixed}    resDataType             wrap the response with
+ *                                           the given function's prototype
+ *                                           if a function was given;
+ *                                           merge the response to
+ *                                           return a JSON object if JSON
+ *                                           was given;
+ *                                           the given object if a object
+ *                                           was given;
+ *                                           return responseText if null
+ *                                           was given.
+ * @param {Function} callback(err, res, xhr) callback function
+ * @param {Function} progress(evt)           progress callback
  */
-function Request(method, url, payload, resDataType, callback, progress) {
+function Request(method, url, headers, payload, resDataType, callback, progress) {
 
   var xhr = new XMLHttpRequest();
   xhr.onload = function(evt) {
+    var res;
     if (xhr.status >= 200 && xhr.status <= 207) {
       if (resDataType) {
         try {
-          var res = JSON.parse(xhr.responseText);
+          res = JSON.parse(xhr.responseText);
         } catch(e) {
-          return callback(e, xhr);
+          return callback(e, null, xhr);
         }
         if (resDataType === JSON)
-            return callback(null, res);
+            return callback(null, res, xhr);
         if (Function.isFunction(resDataType))
-          return callback(null, $wrap(res, resDataType));
-        return callback(null, $extend(resDataType, res));
+          return callback(null, $wrap(res, resDataType), xhr);
+        return callback(null, $extend(resDataType, res), xhr);
       }
-      return callback(null, xhr.responseText);
+      return callback(null, xhr.responseText, xhr);
     }
-    callback(xhr.status, xhr);
+    callback(xhr.status, null, xhr);
   };
   xhr.onerror = function(evt) {
     callback(evt, xhr);
@@ -343,10 +345,15 @@ function Request(method, url, payload, resDataType, callback, progress) {
   if (resDataType)
     xhr.setRequestHeader('Accept', 'application/json');
 
+  if (headers)
+    for (var key in headers)
+      xhr.setRequestHeader(key, headers.value);
+
   if (method == 'POST' || method == 'PUT') {
-    payload = JSON.stringify(payload);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    // xhr.setRequestHeader('Content-Length', payload.length);
+    if (Object.isObject(payload)) {
+      payload = JSON.stringify(payload);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+    }
     xhr.send(payload);
   } else {
     xhr.send(null);
