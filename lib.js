@@ -268,7 +268,7 @@ $define(Node.prototype, {
   replaceWith: function(node) {
     return this.parentNode.replaceChild(node, this);
   },
-  clear: function() {
+  clearContent: function() {
     while (this.firstChild)
       this.removeChild(this.firstChild);
     return this;
