@@ -167,7 +167,7 @@ $define(Element.prototype, document.documentElement.classList ? {
 });
 
 function toDatasetName(name) {
-  return 'data-' + name.replace(/A-Z/g, function(cap) {
+  return 'data-' + name.replace(/[A-Z]/g, function(cap) {
     return '-' + cap.toLowerCase();
   });
 }
@@ -190,7 +190,7 @@ $define(Element.prototype, document.documentElement.dataset ? {
     return this;
   },
   getData: function(name) {
-    return this.getAttribute(toDatasetName(name));
+    return this.getAttribute(toDatasetName(name)) || undefined;
   },
   removeData: function(name) {
     this.removeAttribute(toDatasetName(name));
