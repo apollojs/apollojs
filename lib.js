@@ -61,6 +61,12 @@ $define(Element.prototype, {
   show: function() {
     return this.removeClass('HIDE');
   },
+  getVisibility: function() {
+    return !this.hasClass('HIDE');
+  },
+  setVisibility: function(visible) {
+    return this.setClass('HIDE', !visible);
+  },
   getSize: function() {
     return {
       w: this.offsetWidth,
