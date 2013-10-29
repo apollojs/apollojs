@@ -506,12 +506,37 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
 
 }
 
+/**
+ * Create a callback buffer, that will buffer the callback until
+ *   a certain amount of time.
+ * @param {Function} callback    original callback function
+ * @param {int}      time        minimal time needed before callback
+ * @param {bool}     errShortcut shortcut to callback if err occurs (default enabled, unless set to false)
+ * @return {Function}            a wrapped callback function
+ */
+function CallbackBuffer(callback, time, errShortcut) {
+  if (!time)
+    return callback;
+  var startTime = Date.now();
+  return function(err) {
+    if (err && errShortcut !== false)
+      return callback.apply(null, arguments);
+    var waitTime = startTime + time - Date.now();
+    if (waitTime <= 0)
+      return callback.apply(null, arguments);
+    setTimeout(function(args) {
+      callback.apply(null, args);
+    }, waitTime, arguments);
+  };
+}
+
 $define(window, {
   $E: $E,
   Request: Request,
   Tmpl: Tmpl,
   StyleSheet: StyleSheet,
-  EventThrottle: EventThrottle
+  EventThrottle: EventThrottle,
+  CallbackBuffer: CallbackBuffer
 });
 
 if (!window.requestAnimationFrame) {
