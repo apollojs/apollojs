@@ -32,11 +32,12 @@ function $C(name, ele) {
 
 (function() {
 
-var elementCache = {};
+var pElementCache = {};
+
 function $E(name, att) {
-  if (!elementCache[name])
-    elementCache[name] = document.createElement(name);
-  var el = elementCache[name].cloneNode(false);
+  if (!pElementCache[name])
+    pElementCache[name] = document.createElement(name);
+  var el = pElementCache[name].cloneNode(false);
   for (var i = 1; i < arguments.length; i++)
     if (arguments[i] instanceof HTMLElement)
       el.appendChild(arguments[i]);
