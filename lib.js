@@ -1,4 +1,4 @@
-function $NOP() {};
+(function() {
 
 function $I(id) {
   return document.getElementById(id);
@@ -30,8 +30,6 @@ function $C(name, ele) {
   return els.length > 0 ? els[0] : null;
 }
 
-(function() {
-
 var pElementCache = {};
 
 function $E(name, att) {
@@ -48,6 +46,58 @@ function $E(name, att) {
       else el.className = arguments[i][key];
   return el;
 }
+
+$define(Node.prototype, {
+  ancestorOf: function(node, noself) {
+    for (node = noself ? this.parentNode : node; node; node = node.parentNode)
+      if (this === node) return true;
+    return false;
+  },
+  findAncestorOfType: function(type, noself, blocker) {
+    blocker = blocker || document;
+    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
+      if (node.getAttribute('data-type') === Type.__type)
+        return node;
+    return null;
+  },
+  findAncestorOfTagName: function(tagname, noself, blocker) {
+    blocker = blocker || document;
+    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
+      if (node.tagName === tagname)
+        return node;
+    return null;
+  },
+  findAncestorWithAttribute: function(attr, noself, blocker) {
+    blocker = blocker || document;
+    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
+      if (node.hasAttribute(attr))
+        return node;
+    return null;
+  },
+  findTypedAncestor: function(noself, blocker) {
+    return this.findAncestorWithAttribute('data-type', noself, blocker);
+  },
+  extract: function() {
+    return this.parentNode.removeChild(this);
+  },
+  replaceWith: function(node) {
+    return this.parentNode.replaceChild(node, this);
+  },
+  clearContent: function() {
+    while (this.firstChild)
+      this.removeChild(this.firstChild);
+    return this;
+  },
+  setFirstTextNodeValue: function(value) {
+    for (var node = this.firstChild; node; node = node.nextChild)
+      if (node.nodeType === 3) {
+        node.nodeValue = value;
+        return this;
+      }
+    this.appendChild(document.createTextNode(value));
+    return this;
+  }
+});
 
 $define(Element.prototype, {
   setClass: function(cls, set, enforce) {
@@ -238,58 +288,6 @@ $define(Element.prototype, document.documentElement.dataset ? {
   },
   removeData: function(name) {
     this.removeAttribute(toDatasetName(name));
-    return this;
-  }
-});
-
-$define(Node.prototype, {
-  ancestorOf: function(node, noself) {
-    for (node = noself ? this.parentNode : node; node; node = node.parentNode)
-      if (this === node) return true;
-    return false;
-  },
-  findAncestorOfType: function(type, noself, blocker) {
-    blocker = blocker || document;
-    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
-      if (node.getAttribute('data-type') === Type.__type)
-        return node;
-    return null;
-  },
-  findAncestorOfTagName: function(tagname, noself, blocker) {
-    blocker = blocker || document;
-    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
-      if (node.tagName === tagname)
-        return node;
-    return null;
-  },
-  findAncestorWithAttribute: function(attr, noself, blocker) {
-    blocker = blocker || document;
-    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
-      if (node.hasAttribute(attr))
-        return node;
-    return null;
-  },
-  findTypedAncestor: function(noself, blocker) {
-    return this.findAncestorWithAttribute('data-type', noself, blocker);
-  },
-  extract: function() {
-    return this.parentNode.removeChild(this);
-  },
-  replaceWith: function(node) {
-    return this.parentNode.replaceChild(node, this);
-  },
-  clearContent: function() {
-    while (this.firstChild)
-      this.removeChild(this.firstChild);
-    return this;
-  },
-  setFirstTextNodeValue: function(value) {
-    for (var node = this.firstChild; node; node = node.nextChild)
-      if (node.nodeType === 3) {
-        node.nodeValue = value;
-        return this;
-      }
-    this.appendChild(document.createTextNode(value));
     return this;
   }
 });
@@ -582,6 +580,13 @@ function CallbackBuffer(callback, time, errShortcut) {
 }
 
 $define(window, {
+  $I: $I,
+  $TA: $TA,
+  $T: $T,
+  $SA: $SA,
+  $S: $S,
+  $CA: $CA,
+  $C: $C,
   $E: $E,
   Request: Request,
   Tmpl: Tmpl,
@@ -590,7 +595,7 @@ $define(window, {
   CallbackBuffer: CallbackBuffer
 });
 
-if (!window.requestAnimationFrame) {
+if (!window.requestAnimationFrame)
   $define(window, {
     requestAnimationFrame: window.mozRequestAnimationFrame ||
       window.webkitRequestAnimationFrame ||
@@ -601,6 +606,5 @@ if (!window.requestAnimationFrame) {
       window.webkitCancelAnimationFrame ||
       window.msCancelAnimationFrame || clearTimeout
     });
-}
 
 })();
