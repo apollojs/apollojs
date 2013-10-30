@@ -456,8 +456,9 @@ function StyleSheet() {
 $define(CSSStyleSheet.prototype, {
   clear: function() {
     this.disabled = true;
-    while (this.cssRules.length > 0)
-      this.deleteRule(0);
+    var rules = this.cssRules || this.rules;
+    while (rules.length > 0)
+      this.removeRule(0);
     this.disabled = false;
   },
   setRules: function(rules) {
@@ -467,27 +468,30 @@ $define(CSSStyleSheet.prototype, {
     this.disabled = false;
   },
   appendRule: function(selector, style) {
-    var idx = this.cssRules.length;
+    var rules = this.cssRules || this.rules;
+    var idx = rules.length;
     if (this.insertRule)
       this.insertRule(selector + '{}', idx);
     else
       this.addRule(selector, ';');
-    var rule = this.cssRules[idx];
+    var rule = rules[idx];
     // console.log(rule);
     if (style)
       for (var name in style)
         rule.style[name] = style[name];
     return rule;
   },
-  removeRule: function(rule) {
-    for (var i = 0; i < this.cssRules.length; i++) {
-      if (this.cssRules[i] === rule) {
-        this.deleteRule(i);
-        return;
-      }
-    }
+  indexOf: function(rule) {
+    var rules = this.cssRules || this.rules;
+    for (var i = 0; i < rules.length; i++)
+      if (rules[i] === rule)
+        return i;
+    return -1;
+  },
+  removeRule: function(idx) {
+    this.deleteRule(idx);
   }
-});
+}, true);
 
 /**
  * Create a event throttle for time critical events
