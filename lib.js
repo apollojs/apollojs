@@ -314,7 +314,16 @@ $define(Element.prototype, document.documentElement.dataset ? {
 function Request(method, url, headers, payload, resDataType, callback, progress) {
 
   var xhr = new XMLHttpRequest();
-  xhr.onload = function(evt) {
+  if (xhr.onload === undefined) {
+    // we are fucking with IE8!
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4)
+        xhr.onload();
+      else if (xhr.readyState === 0)
+        xhr.onerror();
+    };
+  }
+  xhr.onload = function() {
     var res;
     if (xhr.status >= 200 && xhr.status <= 207) {
       if (resDataType) {
