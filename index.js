@@ -267,7 +267,17 @@ $define(window, {
 
 $define(String.prototype, {
   /**
-   * Rep
+   * Repeat current string for given times.
+   * @param  {int} times  Times to repeat
+   * @return {string}     result
+   */
+  repeat: function(times) {
+    var res = '';
+    for (var i = 0; i < times; i++)
+      res += this;
+    return res;
+  },
+  /**
    * Padding this to given length with specified char from left.
    * @param  {char} ch    padding char
    * @param  {int} length desired length
@@ -319,8 +329,22 @@ $define(String.prototype, {
     return this.replace(/\b([a-z])(['a-z]*)\b/g, function(all, letter, rest) {
       return letter.toUpperCase() + rest;
     });
+  },
+  /**
+   * Trim whitespaces at the begining of the string
+   * @return {string} trimmed string
+   */
+  trimLeft: function() {
+    return this.replace(/^\s+/, '');
+  },
+  /**
+   * Trim whitespaces at the ending of the string
+   * @return {string} trimmed string
+   */
+  trimRight: function() {
+    return this.replace(/\s+$/, '');
   }
-});
+}, true);
 
 $define(Number.prototype, {
   /**
