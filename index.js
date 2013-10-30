@@ -58,34 +58,15 @@ function _deepExtend(obj, ext) {
  * @param  {bool} preserve    preserve existing property
  * @return {Object}           reference to object
  */
-
 function $define(object, prototype, preserve) {
-  var setterGetterPattern = /^(set|get)([A-Z])(.*)/;
-  var setterGetters = {};
   for (var key in prototype) {
     if (preserve && (key in object))
       continue;
-    var matches = setterGetterPattern.exec(key);
-    var fn = prototype[key];
     Object.defineProperty(object, key, {
-      value: fn,
+      value: prototype[key],
       writable: true
     });
-    // if (matches) {
-    //   if (matches[1] === 'set') {
-    //     if (fn.length !== 1)
-    //       continue;
-    //   } else {
-    //     if (fn.length !== 0)
-    //       continue;
-    //   }
-    //   var name = matches[2].toLowerCase() + matches[3];
-    //   if (!setterGetters.hasOwnProperty(name))
-    //     setterGetters[name] = {};
-    //   setterGetters[name][matches[1]] = fn;
-    // }
   }
-  Object.defineProperties(object, setterGetters);
   return object;
 }
 
@@ -109,26 +90,30 @@ function $declare(fn, prototype) {
  * @param  {Object} prototype prototype of Class
  * @return {Function}         reference to constructor
  */
-
-function $inherit(fn, parent, prototype) {
-  if (fn.__proto__ === undefined) {
-    // Fix IE support
+var $inherit = (function() {
+  if (Object.__proto__)
+    return function(fn, parent, prototype) {
+      fn.prototype = {
+        constructor: fn,
+        __proto__: parent.prototype
+      };
+      if (prototype)
+        $define(fn.prototype, prototype);
+      return fn;
+    };
+  // Fix IE support
+  return function (fn, parent, prototype) {
     var proto = {};
     Object.getOwnPropertyNames(parent.prototype).forEach(function(name) {
       proto[name] = parent.prototype[name];
     });
     proto.constructor = fn;
     $define(fn.prototype, proto);
-  } else {
-    fn.prototype = {
-      constructor: fn,
-      __proto__: parent.prototype
-    };
-  }
-  if (prototype)
-    $define(fn.prototype, prototype);
-  return fn;
-}
+    if (prototype)
+      $define(fn.prototype, prototype);
+    return fn;
+  };
+})();
 
 /**
  * Adding enumerations to a Class (both static and prototype).
@@ -233,23 +218,22 @@ function $default(val, def) {
  * @return {Object}         wrapped object
  */
 
-function $wrap(obj, Type) {
-  obj.__proto__ = Type.prototype;
-  if (Type.__wrap)
-    Type.__wrap(obj);
-  return obj;
-}
-
-/**
- * Removing prototype chain from a given object.
- * @param  {Object} object   object to be stripped
- * @return {Object}          object stripped
- */
-
-function $strip(object) {
-  object.__proto__ = Object.prototype;
-  return object;
-}
+var $wrap = (function() {
+  if (Object.__proto__)
+    return function(obj, Type) {
+      obj.__proto__ = Type.prototype;
+      if (Type.__wrap)
+        Type.__wrap(obj);
+      return obj;
+    };
+  // Fix IE support
+  return function(obj, Type) {
+    $extend(obj, Type.prototype);
+    if (Type.__wrap)
+      Type.__wrap(obj);
+    return obj;
+  };
+});
 
 /**
  * get a sha1 hash from the stringify JSON of obj
@@ -278,23 +262,12 @@ $define(window, {
   $default: $default,
   // $random: $random,
   $wrap: $wrap,
-  $strip: $strip,
   $hashObject: $hashObject
 });
 
 $define(String.prototype, {
   /**
-   * Repeat current string for given times.
-   * @param  {int} times  Times to repeat
-   * @return {string}     result
-   */
-  repeat: function(times) {
-    var res = '';
-    for (var i = 0; i < times; i++)
-      res += this;
-    return res;
-  },
-  /**
+   * Rep
    * Padding this to given length with specified char from left.
    * @param  {char} ch    padding char
    * @param  {int} length desired length
