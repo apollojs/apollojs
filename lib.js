@@ -50,7 +50,17 @@ function $E(name, att) {
 }
 
 $define(Element.prototype, {
-  setClass: function(cls, set) {
+  setClass: function(cls, set, enforce) {
+    if (enforce) {
+      var cur = this.hasClass(cls);
+      if (cur && cur == set) {
+        var self = this;
+        setTimeout(function() {
+          self.addClass(cls);
+        }, 1);
+        return this.removeClass(cls);
+      }
+    }
     return set ?
       this.addClass(cls) :
       this.removeClass(cls);
