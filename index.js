@@ -157,17 +157,30 @@ function $error() {
 // }
 
 /**
- * Generates a shallow copy of an Object.
- * @param  {Object} org source object
- * @return {Object}     cloned object
+ * Generates a copy of an Object.
+ * @param  {Mixed} org  source object
+ * @param  {bool} deep  perform a deep clone
+ * @return {Mixed}      cloned object
  */
 
-function $clone(org) {
-  var obj = {};
-  for (var key in org) {
-    obj[key] = org[key];
+function $clone(obj, deep) {
+  var res;
+  if (Array.isArray(obj)) {
+    res = obj.slice(0);
+    if (deep)
+      for (var i = 0; i < res.length; i++)
+        if (Object.isObject(res[i]))
+          res[i] = $clone(res[i], true);
+  } else if (Object.isObject(obj)) {
+    res = {};
+    for (var key in obj)
+      res[key] = obj[key];
+    if (deep)
+      for (var key in obj)
+        if (Object.isObject(res[key]))
+          res[key] = $clone(res[key], true);
   }
-  return obj;
+  return res;
 }
 
 /**
@@ -180,12 +193,12 @@ function $clone(org) {
 //   return $extend($clone(a), b);
 // }
 
-function $bind(org, $this) {
-  var obj = {};
-  for (var key in org)
-    obj[key] = org[key].bind($this);
-  return obj;
-}
+// function $bind(org, $this) {
+//   var obj = {};
+//   for (var key in org)
+//     obj[key] = org[key].bind($this);
+//   return obj;
+// }
 
 /**
  * Return default value of an undefined variable.
