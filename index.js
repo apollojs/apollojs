@@ -591,28 +591,25 @@ $define(Object, {
    */
   isObjectStrict: function(obj) {
     return Object.prototype.toString.call(obj) === '[object Object]';
-  }
-});
-
-$define(Object.prototype, {
+  },
   /**
-   * project this with projectiong, same behaviour with mongodb projection
+   * project $object with projectiong, same behaviour with mongodb projection
+   * @param  {Object} object      target object
    * @param  {Object} projection  An object mapping fields to values
    * @param  {Boolean} deep       if true, go deep for sub objects
    * @param  {Boolean} keep       if true, keep undefined field of this
    * @return {Object}             projected object
    */
-  project: function(projection, deep, keep) {
+  project: function(object, projection, deep, keep) {
     if (!Object.isObject(projection))
-      return this;
-    var self = this;
+      return object;
     var res = {};
     Object.keys(projection).forEach(function(key) {
       var proj = projection[key];
       if (proj) {
-        var el = self[key];
+        var el = object[key];
         if (deep && el !== undefined && typeof el == 'object' && typeof proj == "object") {
-          res[key] = el.project(projection[key]);
+          res[key] = Object.project(el, projection[key], deep, keep);
         } else {
           if (keep)
             res[key] = el;
@@ -623,6 +620,7 @@ $define(Object.prototype, {
     });
     return res;
   }
+
 });
 
 $define(Function, {
