@@ -634,7 +634,7 @@ $define(Date, {
       return obj;
     if (typeof obj === 'string')
       obj = Date.parse(obj);
-    if (typeof obj === 'nubmer') {
+    if (typeof obj === 'number') {
       if (isNaN(obj))
         return null;
       obj = new Date(obj);
