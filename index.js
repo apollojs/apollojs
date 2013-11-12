@@ -518,16 +518,13 @@ $define(Array.prototype, {
    */
   flatten: function(deep) {
     var res = [];
-    for (var i = 0; i < this.length; i++) {
-      if (Array.isArray(this[i])) {
-        if (deep)
-          res.push.apply(res, this[i].flatten(true));
-        else
-          res.push.apply(res, this[i]);
-      } else {
+    if (!deep)
+      return res.concat.apply(res, this);
+    for (var i = 0; i < this.length; i++)
+      if (Array.isArray(this[i]))
+        res.push.apply(res, this[i].flatten(true));
+      else
         res.push(this[i]);
-      }
-    }
     return res;
   }
 });
@@ -658,7 +655,7 @@ $define(Date, {
       return obj;
     if (typeof obj === 'string')
       obj = Date.parse(obj);
-    if (typeof obj === 'nubmer') {
+    if (typeof obj === 'number') {
       if (isNaN(obj))
         return null;
       obj = new Date(obj);
