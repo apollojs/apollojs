@@ -48,14 +48,14 @@ function $E(name, att) {
 }
 
 $define(Node.prototype, {
-  ancestorOf: function(node, noself) {
+  $ancestorOf: function(node, noself) {
     for (node = noself ? this.parentNode : node;
         node;
         node = node.parentNode)
       if (this === node) return true;
     return false;
   },
-  findAncestorOfTagName: function(tagname, noself, blocker) {
+  $findAncestorOfTagName: function(tagname, noself, blocker) {
     blocker = blocker || document;
     for (var node = noself ? this.parentNode : this;
         node;
@@ -67,7 +67,7 @@ $define(Node.prototype, {
     }
     return null;
   },
-  findAncestorWithAttribute: function(attr, noself, blocker) {
+  $findAncestorWithAttribute: function(attr, noself, blocker) {
     blocker = blocker || document;
     for (var node = noself ? this.parentNode : this;
         node && node != document;
@@ -79,21 +79,21 @@ $define(Node.prototype, {
     }
     return null;
   },
-  findTypedAncestor: function(noself, blocker) {
-    return this.findAncestorWithAttribute('data-type', noself, blocker);
+  $findTypedAncestor: function(noself, blocker) {
+    return this.$findAncestorWithAttribute('data-type', noself, blocker);
   },
-  extract: function() {
+  $extract: function() {
     return this.parentNode.removeChild(this);
   },
-  replaceWith: function(node) {
+  $replaceWith: function(node) {
     return this.parentNode.replaceChild(node, this);
   },
-  clearContent: function() {
+  $clearContent: function() {
     while (this.firstChild)
       this.removeChild(this.firstChild);
     return this;
   },
-  setFirstTextNodeValue: function(value) {
+  $setFirstTextNodeValue: function(value) {
     for (var node = this.firstChild; node; node = node.nextChild)
       if (node.nodeType === 3) {
         node.nodeValue = value;
@@ -105,78 +105,78 @@ $define(Node.prototype, {
 });
 
 function hideClassAfterDuration(el, cls, duration) {
-  var timers = el.getData('apolloTimers', true) || {};
+  var timers = el.$getData('apolloTimers', true) || {};
   if (timers[cls])
     clearTimeout(timers[cls]);
   timers[cls] = setTimeout(function() {
-    el.removeClass(cls);
+    el.$removeClass(cls);
   }, duration);
-  el.setData('apolloTimers', timers, true);
+  el.$setData('apolloTimers', timers, true);
 }
 
 // for shitting IE9.
 $define(Element.prototype, document.documentElement.classList ? {
-  addClass: function(cls, duration) {
+  $addClass: function(cls, duration) {
     this.classList.add(cls);
     if (duration)
       hideClassAfterDuration(this, cls, duration);
     return this;
   },
-  removeClass: function(cls) {
+  $removeClass: function(cls) {
     this.classList.remove(cls);
     return this;
   },
-  hasClass: function(cls) {
+  $hasClass: function(cls) {
     return this.classList.contains(cls);
   },
-  toggleClass: function(cls) {
+  $toggleClass: function(cls) {
     this.classList.toggle(cls);
     return this;
   }
 } : {
-  addClass: function(cls, duration) {
-    if (!this.hasClass(cls))
+  $addClass: function(cls, duration) {
+    if (!this.$hasClass(cls))
       this.className += ' ' + cls;
     hideClassAfterDuration(this, cls, duration);
     return this;
   },
-  removeClass: function(cls) {
+  $removeClass: function(cls) {
     this.className = this.className.replace(new RegExp('\\s*\\b' + cls + '\\b', 'g'), '');
     return this;
   },
-  hasClass: function(cls) {
+  $hasClass: function(cls) {
     return (new RegExp('\\b' + cls + '\\b')).test(this.className);
   },
-  toggleClass: function(cls) {
-    return this.hasClass(cls) ? this.removeClass(cls) : this.addClass(cls);
+  $toggleClass: function(cls) {
+    return this.$hasClass(cls) ? this.$removeClass(cls) : this.$addClass(cls);
   }
 });
 
 $define(Element.prototype, {
-  setClass: function(cls, set, duration) {
+  $setClass: function(cls, set, duration) {
     return set ?
-      this.addClass(cls, duration) :
-      this.removeClass(cls);
+      this.$addClass(cls, duration) :
+      this.$removeClass(cls);
   },
-  hide: function() {
-    return this.addClass('HIDE');
+  $hide: function() {
+    return this.$addClass('HIDE');
   },
-  show: function() {
-    return this.removeClass('HIDE');
+  $show: function() {
+    return this.$removeClass('HIDE');
   },
-  getVisibility: function() {
-    return !this.hasClass('HIDE');
+  $getVisibility: function() {
+    return !this.$hasClass('HIDE');
   },
-  setVisibility: function(visible) {
-    return this.setClass('HIDE', !visible);
+  $setVisibility: function(visible) {
+    return this.$setClass('HIDE', !visible);
   },
-  getSize: function() {
+  $getSize: function() {
     return {
       w: this.offsetWidth,
       h: this.offsetHeight
     };
   },
-  getOffsetPos: function(blocker) {
+  $getOffsetPos: function(blocker) {
     var x = 0, y = 0;
     for (var node = this; node.offsetParent && node !== blocker;
         node = node.offsetParent) {
@@ -188,65 +188,65 @@ $define(Element.prototype, {
       y: y
     };
   },
-  getOffsetLeft: function(blocker) {
+  $getOffsetLeft: function(blocker) {
     var x = 0;
     for (var node = this; node.offsetParent && node !== blocker;
         node = node.offsetParent)
       x += node.offsetLeft;
     return x;
   },
-  getOffsetTop: function(blocker) {
+  $getOffsetTop: function(blocker) {
     var y = 0;
     for (var node = this; node.offsetParent && node !== blocker;
         node = node.offsetParent)
       y += node.offsetTop;
     return y;
   },
-  getScreenPos: function() {
+  $getScreenPos: function() {
     var pos = this.getPos();
     pos.x -= $DE.scrollLeft;
     pos.y -= $DE.scrollTop;
     return pos;
   },
-  setPos: function(pos) {
+  $setPos: function(pos) {
     if ('x' in pos) this.style.left = pos.x + 'px';
     if ('y' in pos) this.style.top = pos.y + 'px';
     return this;
   },
-  setSize: function(size) {
+  $setSize: function(size) {
     if ('w' in size) this.style.width = size.w + 'px';
     if ('h' in size) this.style.height = size.h + 'px';
     return this;
   },
-  measure: function() {
+  $measure: function() {
     if (!this.parentNode)
       document.body.appendChild(this);
-    return this.addClass('MEASURING').getSize();
+    return this.$addClass('MEASURING').$getSize();
   },
-  unmeasure: function() {
+  $unmeasure: function() {
     var node = this;
     setTimeout(function() {
-      node.removeClass('MEASURING');
+      node.$removeClass('MEASURING');
     }, 0);
     return this;
   },
-  setAttr: function(name, value, json) {
+  $setAttr: function(name, value, json) {
     if (json)
       value = JSON.stringify(value);
     this.setAttribute(name, value);
     return this;
   },
-  getAttr: function(name, json) {
+  $getAttr: function(name, json) {
     var value = this.getAttribute(name);
     if (json)
       return JSON.parse(value);
     return value;
   },
-  removeAttr: function(name) {
+  $removeAttr: function(name) {
     this.removeAttribute(name);
     return this;
   },
-  setTextValue: function(value) {
+  $setTextValue: function(value) {
     if (this.firstChild && this.firstChild.nodeType === 3) {
       this.firstChild.nodeValue = value;
       return this;
@@ -254,14 +254,14 @@ $define(Element.prototype, {
     this.appendChild(document.createTextNode(value));
     return this;
   },
-  disableScrollPropagation: function() {
+  $disableScrollPropagation: function() {
     if (document.body.onmousewheel !== undefined)
       this.addEventListener('mousewheel', disableScrollPropagation, false);
     else
       this.addEventListener('wheel', disableScrollPropagation, false);
     return this;
   },
-  enableScrollPropagation: function() {
+  $enableScrollPropagation: function() {
     if (document.body.onmousewheel !== undefined)
       this.removeEventListener('mousewheel', disableScrollPropagation, false);
     else
@@ -290,36 +290,36 @@ function toDatasetName(name) {
 }
 
 $define(Element.prototype, document.documentElement.dataset ? {
-  setData: function(name, value, json) {
+  $setData: function(name, value, json) {
     if (json)
       value = JSON.stringify(value);
     this.dataset[name] = value;
     return this;
   },
-  getData: function(name, json) {
+  $getData: function(name, json) {
     var value = this.dataset[name];
     if (value && json)
       return JSON.parse(value);
     return value;
   },
-  removeData: function(name) {
+  $removeData: function(name) {
     delete this.dataset[name];
     return this;
   }
 } : {
-  setData: function(name, value, json) {
+  $setData: function(name, value, json) {
     if (json)
       value = JSON.stringify(value);
     this.setAttribute(toDatasetName(name), value);
     return this;
   },
-  getData: function(name, json) {
+  $getData: function(name, json) {
     var value = this.getAttribute(toDatasetName(name)) || undefined;
     if (value && json)
       return JSON.parse(value);
     return value;
   },
-  removeData: function(name) {
+  $removeData: function(name) {
     this.removeAttribute(toDatasetName(name));
     return this;
   }
@@ -436,7 +436,7 @@ function Tmpl(node, targets, singleton) {
   }
   this.begins.push(this.targets.length);
   if (!singleton)
-    node.extract();
+    node.$extract();
 }
 $declare(Tmpl, {
   generate: function() {

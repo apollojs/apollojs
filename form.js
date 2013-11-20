@@ -12,7 +12,7 @@ var kNumericInputTypes = {
 };
 
 $define(HTMLFormElement.prototype, {
-  getControls: function() {
+  $getControls: function() {
     var controls = {};
     Array.forEach(
         $SA('input, select, textarea, button', this),
@@ -24,11 +24,8 @@ $define(HTMLFormElement.prototype, {
         });
     return controls;
   },
-  init: function() {
-    return this;
-  },
-  autoFocus: function(controls) {
-    controls = controls || this.getControls();
+  $autoFocus: function(controls) {
+    controls = controls || this.$getControls();
     for (var name in controls) {
       var control = controls[name];
       if (control.hasAttribute('autofocus'))
@@ -40,8 +37,8 @@ $define(HTMLFormElement.prototype, {
    * Make none pre-set disabled controls disabled or editable.
    * @param {bool} disabled disabled if true, editable otherwise
    */
-  setDisabled: function(disabled, controls) {
-    controls = controls || this.getControls();
+  $setDisabled: function(disabled, controls) {
+    controls = controls || this.$getControls();
     for (var name in controls) {
       var control = controls[name];
       if (control.hasAttribute('orgdisabled'))
@@ -52,20 +49,20 @@ $define(HTMLFormElement.prototype, {
     }
     return this;
   },
-  disable: function(controls) {
-    return this.setDisabled(true, controls);
+  $disable: function(controls) {
+    return this.$setDisabled(true, controls);
   },
-  enable: function(controls) {
-    return this.setDisabled(false, controls);
+  $enable: function(controls) {
+    return this.$setDisabled(false, controls);
   },
-  getFirstInvalidControl: function(controls, values) {
-    controls = controls || this.getControls();
-    values = values || this.getValues(controls);
+  $getFirstInvalidControl: function(controls, values) {
+    controls = controls || this.$getControls();
+    values = values || this.$getValues(controls);
     for (var name in values) {
       var control = controls[name];
       var value = values[name];
       var type = getType(control);
-      var validator = getValidator(control.getData('validator'), this.getAttribute('name'));
+      var validator = getValidator(control.$getData('validator'), this.getAttribute('name'));
       // console.log(name, value, validator);
       if (control.hasAttribute('required') && !value ||
           value && (
@@ -77,17 +74,17 @@ $define(HTMLFormElement.prototype, {
     }
     return null;
   },
-  getValues: function(controls) {
-    controls = controls || this.getControls();
+  $getValues: function(controls) {
+    controls = controls || this.$getControls();
     var res = {};
     for (var name in controls)
-      res[name] = controls[name].getValue();
+      res[name] = controls[name].$getValue();
     return res;
   },
-  setValues: function(values, controls) {
-    controls = controls || this.getControls();
+  $setValues: function(values, controls) {
+    controls = controls || this.$getControls();
     for (var name in controls)
-      controls[name].setValue(values[name]);
+      controls[name].$setValue(values[name]);
     return this;
   }
 });
@@ -95,15 +92,15 @@ $define(HTMLFormElement.prototype, {
 var pFieldValidators = {};
 
 $define(HTMLFormElement, {
-  registerValidator: function(name, validator, formName) {
+  $registerValidator: function(name, validator, formName) {
     formName = formName || '*';
     if (!pFieldValidators[formName])
       pFieldValidators[formName] = {};
     pFieldValidators[formName][name] = validator;
   },
-  registerValidators: function(validators, formName) {
+  $registerValidators: function(validators, formName) {
     for (var name in validators)
-      HTMLFormElement.registerValidator(name, validators[name], formName);
+      HTMLFormElement.$registerValidator(name, validators[name], formName);
   }
 });
 
@@ -132,13 +129,13 @@ function getType(control) {
 
 function validateTextControl(control) {
   var value = control.value;
-  var minLength = parseInt(control.getAttr('minlength'), 10);
+  var minLength = parseInt(control.$getAttr('minlength'), 10);
   if (minLength && value.length < minLength)
     return false;
-  var maxLength = parseInt(control.getAttr('maxlength'), 10);
+  var maxLength = parseInt(control.$getAttr('maxlength'), 10);
   if (maxLength && value.length > maxLength)
     return false;
-  var pattern = control.getAttr('pattern');
+  var pattern = control.$getAttr('pattern');
   if (pattern)
     pattern = new RegExp('^' + pattern + '$');
   if (control.type == 'email')
@@ -152,61 +149,61 @@ function validateNumericControl(control) {
   var value = pasreFloat(control.value.trim());
   if (isNaN(value))
     return false;
-  var min = parseFloat(control.getAttr('min'));
+  var min = parseFloat(control.$getAttr('min'));
   if (isNaN(min) && value < min)
     return false;
-  var max = parseFloat(control.getAttr('max'));
+  var max = parseFloat(control.$getAttr('max'));
   if (isNaN(max) && value > max)
     return false;
   return true;
 }
 
 var kControlProto = {
-  setDisabled: function(disabled) {
+  $setDisabled: function(disabled) {
     this.disabled = disabled;
     return this;
   },
-  disable: function() {
+  $disable: function() {
     this.disabled = true;
     return this;
   },
-  enable: function() {
+  $enable: function() {
     this.disabled = false;
     return this;
   },
-  isDisabled: function() {
+  $isDisabled: function() {
     return this.disabled;
   },
-  setValue: function(value) {
+  $setValue: function(value) {
     this.value = value || '';
     return this;
   },
-  getValue: function() {
+  $getValue: function() {
     return this.value;
   }
 };
 
 var kButtonControlProto = $extend({
-  setValue: function(value) {
+  $setValue: function(value) {
     this.value = value || '';
     var elLabel = $C('Label', this);
     if (elLabel) {
       if (value)
-        elLabel.setData('value', value);
+        elLabel.$setData('value', value);
       else
-        elLabel.removeData('value');
+        elLabel.$removeData('value');
     }
     return this;
   }
 }, kControlProto);
 
 var kInputControlProto = $extend({
-  setValue: function(value) {
+  $setValue: function(value) {
     var type = getType(this);
     if (type == 'checkbox' || type == 'radio') {
       if (!Array.isArray(value))
         value = [value];
-      var form = this.findAncestorOfTagName('FORM');
+      var form = this.$findAncestorOfTagName('FORM');
       var inputs = $TA('input', form);
       // console.log(inputs);
       for (var i = 0; i < inputs.length; i++) {
@@ -219,11 +216,11 @@ var kInputControlProto = $extend({
       this.value = value;
     }
   },
-  getValue: function() {
+  $getValue: function() {
     var type = getType(this);
     if (type == 'checkbox' || type == 'radio') {
       var value = [];
-      var form = this.findAncestorOfTagName('FORM');
+      var form = this.$findAncestorOfTagName('FORM');
       var inputs = $TA('input', form);
       var count = 0;
       for (var i = 0; i < inputs.length; i++) {
