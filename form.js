@@ -25,7 +25,6 @@ $define(HTMLFormElement.prototype, {
     return controls;
   },
   init: function() {
-    this.autoFocus();
     return this;
   },
   autoFocus: function(controls) {
@@ -59,52 +58,62 @@ $define(HTMLFormElement.prototype, {
   enable: function(controls) {
     return this.setDisabled(false, controls);
   },
-  getFirstInvalidControl: function(controls) {
+  getFirstInvalidControl: function(controls, values) {
     controls = controls || this.getControls();
-    for (var name in controls)
-      if (!validateControl(controls[name]))
+    values = values || this.getValues(controls);
+    for (var name in values) {
+      var control = controls[name];
+      var value = values[name];
+      var type = getType(control);
+      var validator = getValidator(control.getData('validator'), this.getAttribute('name'));
+      // console.log(name, value, validator);
+      if (control.hasAttribute('required') && !value ||
+          value && (
+            kTextInputTypes[type] && !validateTextControl(control) ||
+            kNumericInputTypes[type] && !validateNumericControl(control) ||
+            validator && !validator(control, value, values)
+          ))
         return controls[name];
+    }
     return null;
   },
-  validate: function(controls) {
-    if (this.getFirstInvalidControl(controls))
-      return false;
-    return true;
-  },
-  toJSON: function(controls) {
+  getValues: function(controls) {
     controls = controls || this.getControls();
     var res = {};
-    for (var name in controls) {
-      var control = controls[name];
-      var value = control.value;
-      var type = getType(control);
-      switch (control.type) {
-        case 'button':
-          continue;
-        case 'number':
-          value = parseInt(value, 10);
-          break;
-        case 'date':
-          value = Date.cast(value);
-          break;
-      }
-      res[name] = value;
-    }
+    for (var name in controls)
+      res[name] = controls[name].getValue();
     return res;
+  },
+  setValues: function(values, controls) {
+    controls = controls || this.getControls();
+    for (var name in controls)
+      controls[name].setValue(values[name]);
+    return this;
   }
 });
 
-function validateControl(control) {
-  var value = control.value;
-  var type = getType(control);
-  var valid = !(
-      control.hasAttribute('required') && !value ||
-      value && (
-        kTextInputTypes[type] && !validateTextControl(control) ||
-        kNumericInputTypes[type] && !validateNumericControl(control)
-      ));
-  control.setClass('Invalid', !valid, true);
-  return valid;
+var pFieldValidators = {};
+
+$define(HTMLFormElement, {
+  registerValidator: function(name, validator, formName) {
+    formName = formName || '*';
+    if (!pFieldValidators[formName])
+      pFieldValidators[formName] = {};
+    pFieldValidators[formName][name] = validator;
+  },
+  registerValidators: function(validators, formName) {
+    for (var name in validators)
+      HTMLFormElement.registerValidator(name, validators[name], formName);
+  }
+});
+
+function getValidator(name, formName) {
+  if (!name)
+    return null;
+  if (pFieldValidators[formName] &&
+      pFieldValidators[formName][name])
+    return pFieldValidators[formName][name];
+  return pFieldValidators['*'][name];
 }
 
 function getType(control) {
@@ -130,7 +139,8 @@ function validateTextControl(control) {
   if (maxLength && value.length > maxLength)
     return false;
   var pattern = control.getAttr('pattern');
-  if (pattern) pattern = new RegExp('^' + pattern + '$');
+  if (pattern)
+    pattern = new RegExp('^' + pattern + '$');
   if (control.type == 'email')
     pattern = pattern || /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
   if (pattern && !pattern.test(value))
@@ -164,13 +174,75 @@ var kControlProto = {
     this.disabled = false;
     return this;
   },
-  isEnabled: function() {
-    return !this.disabled;
+  isDisabled: function() {
+    return this.disabled;
+  },
+  setValue: function(value) {
+    this.value = value || '';
+    return this;
+  },
+  getValue: function() {
+    return this.value;
   }
 };
 
-$define(HTMLButtonElement.prototype, kControlProto);
-$define(HTMLInputElement.prototype, kControlProto);
+var kButtonControlProto = $extend({
+  setValue: function(value) {
+    this.value = value || '';
+    var elLabel = $C('Label', this);
+    if (elLabel) {
+      if (value)
+        elLabel.setData('value', value);
+      else
+        elLabel.removeData('value');
+    }
+    return this;
+  }
+}, kControlProto);
+
+var kInputControlProto = $extend({
+  setValue: function(value) {
+    var type = getType(this);
+    if (type == 'checkbox' || type == 'radio') {
+      if (!Array.isArray(value))
+        value = [value];
+      var form = this.findAncestorOfTagName('FORM');
+      var inputs = $TA('input', form);
+      // console.log(inputs);
+      for (var i = 0; i < inputs.length; i++) {
+        if (inputs[i].name == this.name) {
+          // Hooray, got a company;
+          inputs[i].checked = value.indexOf(inputs[i].value) > -1;
+        }
+      }
+    } else {
+      this.value = value;
+    }
+  },
+  getValue: function() {
+    var type = getType(this);
+    if (type == 'checkbox' || type == 'radio') {
+      var value = [];
+      var form = this.findAncestorOfTagName('FORM');
+      var inputs = $TA('input', form);
+      var count = 0;
+      for (var i = 0; i < inputs.length; i++) {
+        if (inputs[i].name == this.name) {
+          count++;
+          if (inputs[i].checked)
+            value.push(inputs[i].value);
+        }
+      }
+      if (count == 1 || type == 'checkbox')
+        return value[0] || null;
+      return value;
+    }
+    return this.value;
+  }
+}, kControlProto);
+
+$define(HTMLButtonElement.prototype, kButtonControlProto);
+$define(HTMLInputElement.prototype, kInputControlProto);
 $define(HTMLSelectElement.prototype, kControlProto);
 $define(HTMLTextAreaElement.prototype, kControlProto);
 
