@@ -8,6 +8,26 @@
 
 require('../');
 
+describe('$define', function() {
+  var obj = $define({}, {
+    a: 1,
+    get x() { return this.a; },
+    set x(v) { this.a = v; }
+  });
+  it('properties should be non-enumerable', function() {
+    Object.isEmpty(obj).should.be.ok;
+  });
+  it('properties should be non-configurable', function() {
+    (delete obj.a).should.not.be.ok;
+  });
+  it('getter and setter should works', function() {
+    obj.x.should.eql(1);
+    obj.x = 15;
+    obj.a.should.eql(15);
+    obj.x.should.eql(15);
+  });
+});
+
 describe('Array', function() {
   describe('flatten', function() {
     it('should flatten [1, [2, 3], 4] as [1, 2, 3, 4]', function() {
@@ -134,6 +154,108 @@ describe('Number', function() {
       (1234567890).toGroup().should.eql('1,234,567,890');
       (1234567890.123).toGroup(3).should.eql('1,234,567,890.123');
       (1234567890.123).toGroup(3, 'a').should.eql('1a234a567a890.123');
+    });
+  });
+});
+describe('Object', function() {
+  describe('project', function() {
+    var sample = {
+      x0: 0,
+      x1: 1,
+      x2: 2,
+      x: {
+        xx0: 0,
+        xx1: 1,
+        xx2: 2,
+        xx: {
+          xxx0: 0,
+          xxx1: 1,
+          xxx2: undefined
+        }
+      }
+    };
+    it('should project the object to the target shallow', function() {
+      Object.project(sample, {
+        x: {
+          xx0: 1
+        }
+      }).should.eql({
+        x: sample.x
+      });
+    });
+    it('should project the object to the target deep', function() {
+      Object.project(sample, {
+        x: {
+          xx0: 1
+        }
+      }, true).should.eql({
+        x: {
+          xx0: 0
+        }
+      });
+    });
+    it('should project the object to the target deep & multi', function() {
+      Object.project(sample, {
+        x: {
+          xx: {
+            xxx0: 1
+          },
+          xx1: 1
+        }
+      }, true).should.eql({
+        x: {
+          xx: {
+            xxx0: 0
+          },
+          xx1: 1
+        }
+      });
+    });
+    it ('should remove undefined field', function() {
+      Object.project(sample, {
+        x: {
+          xx: {
+            xxx2: 1
+          }
+        }
+      }, true).should.eql({
+        x: {
+          xx: {}
+        }
+      });
+    });
+    it ('should keep undefined field', function() {
+      Object.project(sample, {
+        x: {
+          xx: {
+            xxx2: 1
+          }
+        }
+      }, true, true).should.eql({
+        x: {
+          xx: {
+            xxx2: undefined
+          }
+        }
+      });
+    });
+    it ('should throw, as do not support flatten key', function() {
+      Object.project(sample, {
+        'x.xx1': 1
+      }, true).should.eql({
+        x: {
+          xx1: 1
+        }
+      });
+    });
+    it ('should throw, as do not support revert mode', function() {
+      Object.project(sample, {
+        x: 0
+      }).should.eql({
+        x0: 0,
+        x1: 1,
+        x2: 2
+      });
     });
   });
 });
