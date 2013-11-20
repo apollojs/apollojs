@@ -53,13 +53,6 @@ $define(Node.prototype, {
       if (this === node) return true;
     return false;
   },
-  findAncestorOfType: function(type, noself, blocker) {
-    blocker = blocker || document;
-    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
-      if (node.getAttribute('data-type') === Type.__type)
-        return node;
-    return null;
-  },
   findAncestorOfTagName: function(tagname, noself, blocker) {
     blocker = blocker || document;
     for (var node = noself ? this.parentNode : this;
