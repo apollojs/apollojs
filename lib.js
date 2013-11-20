@@ -619,6 +619,36 @@ function CallbackBuffer(callback, time, noErrShortcut) {
   };
 }
 
+/**
+ * Create a wrapper for a async function which takes no parameters,
+ *   and this wrapper will make sure the function will be called only
+ *   once. All the following caller will be cached in a queue and get
+ *   called after the original callback being called. If the original
+ *   callback is already called, the callers will be called immediately.
+ * @param {Function} fn function
+ */
+function CallOnce(fn) {
+  var loaded = false, loading = false;
+  var queue = [];
+  var args;
+  return function(callback) {
+    if (loaded)
+      return callback.apply(null, args);
+    if (callback)
+      queue.push(callback);
+    if (loading)
+      return;
+    loading = true;
+    fn(function() {
+      args = arguments;
+      loaded = true;
+      for (var i = 0; i < queue.length; i++)
+        queue[i].apply(null, args);
+      queue = null;
+    });
+  };
+}
+
 $define(window, {
   $I: $I,
   $TA: $TA,
@@ -632,7 +662,8 @@ $define(window, {
   Tmpl: Tmpl,
   StyleSheet: StyleSheet,
   EventThrottle: EventThrottle,
-  CallbackBuffer: CallbackBuffer
+  CallbackBuffer: CallbackBuffer,
+  CallOnce: CallOnce
 });
 
 if (!window.requestAnimationFrame)
