@@ -228,6 +228,7 @@ $define(Element.prototype, {
   },
   removeAttr: function(name) {
     this.removeAttribute(name);
+    return this;
   },
   setTextValue: function(value) {
     if (this.firstChild && this.firstChild.nodeType === 3) {
