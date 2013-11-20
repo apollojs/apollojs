@@ -60,32 +60,16 @@ function _deepExtend(obj, ext) {
  */
 
 function $define(object, prototype, preserve) {
-  var setterGetterPattern = /^(set|get)([A-Z])(.*)/;
-  var setterGetters = {};
-  for (var key in prototype) {
+  Object.getOwnPropertyNames(prototype).forEach(function(key) {
     if (preserve && (key in object))
-      continue;
-    var matches = setterGetterPattern.exec(key);
-    var fn = prototype[key];
-    Object.defineProperty(object, key, {
-      value: fn,
-      writable: true
-    });
-    if (matches) {
-      if (matches[1] === 'set') {
-        if (fn.length !== 1)
-          continue;
-      } else {
-        if (fn.length !== 0)
-          continue;
-      }
-      var name = matches[2].toLowerCase() + matches[3];
-      if (!setterGetters.hasOwnProperty(name))
-        setterGetters[name] = {};
-      setterGetters[name][matches[1]] = fn;
-    }
-  }
-  Object.defineProperties(object, setterGetters);
+      return;
+    var desc = Object.getOwnPropertyDescriptor(prototype, key);
+    if ('value' in desc)
+      desc.writable = true;
+    delete desc.enumerable;
+    delete desc.configurable;
+    Object.defineProperty(object, key, desc);
+  });
   return object;
 }
 
@@ -490,7 +474,7 @@ $define(Array.prototype, {
    * Note: It's not a reference when returning a non-object!
    * @return {Mixed} last element
    */
-  getBack: function() {
+  get back() {
     if (this.length)
       return this[this.length - 1];
     return undefined;
@@ -500,7 +484,7 @@ $define(Array.prototype, {
    * Note: It's not a reference when returning a non-object!
    * @return {Mixed} first element
    */
-  getFront: function() {
+  get front() {
     return this[0];
   },
   /**

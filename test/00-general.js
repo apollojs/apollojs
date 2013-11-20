@@ -8,6 +8,26 @@
 
 require('../');
 
+describe('$define', function() {
+  var obj = $define({}, {
+    a: 1,
+    get x() { return this.a; },
+    set x(v) { this.a = v; }
+  });
+  it('properties should be non-enumerable', function() {
+    Object.isEmpty(obj).should.be.ok;
+  });
+  it('properties should be non-configurable', function() {
+    (delete obj.a).should.not.be.ok;
+  });
+  it('getter and setter should works', function() {
+    obj.x.should.eql(1);
+    obj.x = 15;
+    obj.a.should.eql(15);
+    obj.x.should.eql(15);
+  });
+});
+
 describe('Array', function() {
   describe('flatten', function() {
     it('should flatten [1, [2, 3], 4] as [1, 2, 3, 4]', function() {
