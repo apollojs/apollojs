@@ -648,9 +648,10 @@ $define(Date, {
   /**
    * Cast a value to Date
    * @param  {Mixed} obj  object to cast
+   * @param  {bool}  utc  if the obj is in utc
    * @return {Date}       casted value
    */
-  cast: function(obj) {
+  cast: function(obj, utc) {
     if (obj instanceof Date)
       return obj;
     if (typeof obj === 'string')
@@ -658,6 +659,8 @@ $define(Date, {
     if (typeof obj === 'number') {
       if (isNaN(obj))
         return null;
+      if (utc)
+        obj -= new Date().getTimezoneOffset() * 60000;
       obj = new Date(obj);
       if (isNaN(obj.valueOf()))
         return null;
