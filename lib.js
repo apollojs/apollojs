@@ -62,16 +62,26 @@ $define(Node.prototype, {
   },
   findAncestorOfTagName: function(tagname, noself, blocker) {
     blocker = blocker || document;
-    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
+    for (var node = noself ? this.parentNode : this;
+        node;
+        node = node.parentNode) {
       if (node.tagName === tagname)
         return node;
+      if (node == blocker)
+        return null;
+    }
     return null;
   },
   findAncestorWithAttribute: function(attr, noself, blocker) {
     blocker = blocker || document;
-    for (var node = noself ? this.parentNode : this; node && node !== blocker; node = node.parentNode)
+    for (var node = noself ? this.parentNode : this;
+        node && node != document;
+        node = node.parentNode) {
       if (node.hasAttribute(attr))
         return node;
+      if (node == blocker)
+        return null;
+    }
     return null;
   },
   findTypedAncestor: function(noself, blocker) {
