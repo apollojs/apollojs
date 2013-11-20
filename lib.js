@@ -102,20 +102,58 @@ $define(Node.prototype, {
   }
 });
 
+function hideClassAfterDuration(el, cls, duration) {
+  var timers = el.getData('apolloTimers', true) || {};
+  if (timers[cls])
+    clearTimeout(timers[cls]);
+  timers[cls] = setTimeout(function() {
+    el.removeClass(cls);
+  }, duration);
+  el.setData('apolloTimers', timers, true);
+}
+
+// for shitting IE9.
+$define(Element.prototype, document.documentElement.classList ? {
+  addClass: function(cls, duration) {
+    this.classList.add(cls);
+    if (duration)
+      hideClassAfterDuration(this, cls, duration);
+    return this;
+  },
+  removeClass: function(cls) {
+    this.classList.remove(cls);
+    return this;
+  },
+  hasClass: function(cls) {
+    return this.classList.contains(cls);
+  },
+  toggleClass: function(cls) {
+    this.classList.toggle(cls);
+    return this;
+  }
+} : {
+  addClass: function(cls, duration) {
+    if (!this.hasClass(cls))
+      this.className += ' ' + cls;
+    hideClassAfterDuration(this, cls, duration);
+    return this;
+  },
+  removeClass: function(cls) {
+    this.className = this.className.replace(new RegExp('\\s*\\b' + cls + '\\b', 'g'), '');
+    return this;
+  },
+  hasClass: function(cls) {
+    return (new RegExp('\\b' + cls + '\\b')).test(this.className);
+  },
+  toggleClass: function(cls) {
+    return this.hasClass(cls) ? this.removeClass(cls) : this.addClass(cls);
+  }
+});
+
 $define(Element.prototype, {
-  setClass: function(cls, set, enforce) {
-    if (enforce) {
-      var cur = this.hasClass(cls);
-      if (cur && cur == set) {
-        var self = this;
-        setTimeout(function() {
-          self.addClass(cls);
-        }, 1);
-        return this.removeClass(cls);
-      }
-    }
+  setClass: function(cls, set, duration) {
     return set ?
-      this.addClass(cls) :
+      this.addClass(cls, duration) :
       this.removeClass(cls);
   },
   hide: function() {
@@ -227,41 +265,6 @@ function disableScrollPropagation(evt) {
     evt.preventDefault();
   }
 }
-
-// for shitting IE9.
-$define(Element.prototype, document.documentElement.classList ? {
-  addClass: function(cls) {
-    this.classList.add(cls);
-    return this;
-  },
-  removeClass: function(cls) {
-    this.classList.remove(cls);
-    return this;
-  },
-  hasClass: function(cls) {
-    return this.classList.contains(cls);
-  },
-  toggleClass: function(cls) {
-    this.classList.toggle(cls);
-    return this;
-  }
-} : {
-  addClass: function(cls) {
-    if (!this.hasClass(cls))
-      this.className += ' ' + cls;
-    return this;
-  },
-  removeClass: function(cls) {
-    this.className = this.className.replace(new RegExp('\\s*\\b' + cls + '\\b', 'g'), '');
-    return this;
-  },
-  hasClass: function(cls) {
-    return (new RegExp('\\b' + cls + '\\b')).test(this.className);
-  },
-  toggleClass: function(cls) {
-    return this.hasClass(cls) ? this.removeClass(cls) : this.addClass(cls);
-  }
-});
 
 function toDatasetName(name) {
   return 'data-' + name.replace(/[A-Z]/g, function(cap) {
