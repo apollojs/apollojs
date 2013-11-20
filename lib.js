@@ -174,17 +174,31 @@ $define(Element.prototype, {
       h: this.offsetHeight
     };
   },
-  getPos: function() {
-    var node = this, x = 0, y = 0;
-    while (node.offsetParent) {
+  getOffsetPos: function(blocker) {
+    var x = 0, y = 0;
+    for (var node = this; node.offsetParent && node !== blocker;
+        node = node.offsetParent) {
       x += node.offsetLeft;
       y += node.offsetTop;
-      node = node.offsetParent;
     }
     return {
       x: x,
       y: y
     };
+  },
+  getOffsetLeft: function(blocker) {
+    var x = 0;
+    for (var node = this; node.offsetParent && node !== blocker;
+        node = node.offsetParent)
+      x += node.offsetLeft;
+    return x;
+  },
+  getOffsetTop: function(blocker) {
+    var y = 0;
+    for (var node = this; node.offsetParent && node !== blocker;
+        node = node.offsetParent)
+      y += node.offsetTop;
+    return y;
   },
   getScreenPos: function() {
     var pos = this.getPos();
