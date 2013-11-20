@@ -678,14 +678,5 @@ $define(RegExp, {
   }
 });
 
-/**
- * Trying to import mongodb extensions
- */
-// try {
-//   require('./mongo-ext.js');
-// } catch(e) {
-
-// }
-
 require('./extend.js');
 require('./utils.js');
