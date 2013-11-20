@@ -467,7 +467,7 @@ $define(Array.prototype, {
       if (next == this.length) next = middle;
       else if (first == middle) middle = next;
     }
-    return this
+    return this;
   },
   /**
    * get last element in this array
