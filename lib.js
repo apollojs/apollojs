@@ -274,24 +274,34 @@ function toDatasetName(name) {
 }
 
 $define(Element.prototype, document.documentElement.dataset ? {
-  setData: function(name, value) {
+  setData: function(name, value, json) {
+    if (json)
+      value = JSON.stringify(value);
     this.dataset[name] = value;
     return this;
   },
-  getData: function(name) {
-    return this.dataset[name];
+  getData: function(name, json) {
+    var value = this.dataset[name];
+    if (value && json)
+      return JSON.parse(value);
+    return value;
   },
   removeData: function(name) {
     delete this.dataset[name];
     return this;
   }
 } : {
-  setData: function(name, value) {
+  setData: function(name, value, json) {
+    if (json)
+      value = JSON.stringify(value);
     this.setAttribute(toDatasetName(name), value);
     return this;
   },
-  getData: function(name) {
-    return this.getAttribute(toDatasetName(name)) || undefined;
+  getData: function(name, json) {
+    var value = this.getAttribute(toDatasetName(name)) || undefined;
+    if (value && json)
+      return JSON.parse(value);
+    return value;
   },
   removeData: function(name) {
     this.removeAttribute(toDatasetName(name));
