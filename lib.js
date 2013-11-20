@@ -567,17 +567,17 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
 /**
  * Create a callback buffer, that will buffer the callback until
  *   a certain amount of time.
- * @param {Function} callback    original callback function
- * @param {int}      time        minimal time needed before callback
- * @param {bool}     errShortcut shortcut to callback if err occurs (default enabled, unless set to false)
- * @return {Function}            a wrapped callback function
+ * @param {Function} callback      original callback function
+ * @param {int}      time          minimal time needed before callback
+ * @param {bool}     noErrShortcut no shortcut to callback if err occurs
+ * @return {Function}              a wrapped callback function
  */
-function CallbackBuffer(callback, time, errShortcut) {
+function CallbackBuffer(callback, time, noErrShortcut) {
   if (!time)
     return callback;
   var startTime = Date.now();
   return function(err) {
-    if (err && errShortcut !== false)
+    if (err && !noErrShortcut)
       return callback.apply(null, arguments);
     var waitTime = startTime + time - Date.now();
     if (waitTime <= 0)
