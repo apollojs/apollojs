@@ -30,7 +30,7 @@ function $extend(obj, ext, override, deep) {
 
 function _overrideDeepExtend(obj, ext) {
   for (var key in ext)
-    if (Object.isObjectStrict(obj[key]))
+    if (Object.isObjectStrict(obj[key]) && Object.isObjectStrict(ext[key]))
       _overrideDeepExtend(obj[key], ext[key]);
     else
       obj[key] = ext[key];
@@ -39,10 +39,7 @@ function _overrideDeepExtend(obj, ext) {
 function _deepExtend(obj, ext) {
   for (var key in ext)
     if (!(key in obj)) {
-      if (Object.isObjectStrict(obj[key]))
-        _deepExtend(obj[key], ext[key]);
-      else
-        obj[key] = ext[key];
+      obj[key] = ext[key];
     }
 }
 
