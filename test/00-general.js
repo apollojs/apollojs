@@ -27,6 +27,90 @@ describe('$define', function() {
     obj.x.should.eql(15);
   });
 });
+describe('$extend', function() {
+  var objects = {
+    get lhv() {
+      return {
+        age: 73,
+        name: {
+          first: 'John',
+          last: 'Lewis'
+        },
+        sex: {
+          male: 1,
+          female: 0
+        },
+        country: 'us'
+      };
+    },
+    get rhv() {
+      return {
+        age: 74,
+        name: 'John Lewis',
+        sex: {
+          male: 1,
+          secret: 0
+        },
+        born: 1940
+      };
+    },
+    get 0() {
+      return {
+        age: 73,
+        name: {
+          first: 'John',
+          last: 'Lewis'
+        },
+        sex: {
+          male: 1,
+          female: 0
+        },
+        country: 'us',
+        born: 1940
+      };
+    },
+    get 1() {
+      return {
+        age: 74,
+        name: 'John Lewis',
+        sex: {
+          male: 1,
+          secret: 0
+        },
+        born: 1940,
+        country: 'us'
+      };
+    },
+    get 2() {
+      return objects[0];
+    },
+    get 3() {
+      return {
+        age: 73,
+        name: 'John Lewis',
+        sex: {
+          male: 1,
+          female: 0,
+          secret: 0
+        },
+        country: 'us',
+        born: 1940
+      };
+    }
+  };
+  it('should extend without override', function() {
+
+  });
+  it('should extend with override, no deep', function() {
+
+  });
+  it('should not extend deep if without override', function() {
+
+  });
+  it('should extend deep if with override', function() {
+
+  });
+});
 
 describe('Array', function() {
   describe('flatten', function() {
