@@ -175,7 +175,7 @@ var kControlProto = {
     return this.disabled;
   },
   $setValue: function(value) {
-    this.value = value || '';
+    this.value = $default(value, '');
     return this;
   },
   $getValue: function() {
@@ -185,7 +185,7 @@ var kControlProto = {
 
 var kButtonControlProto = $extend({
   $setValue: function(value) {
-    this.value = value || '';
+    this.value = $default(value, '');
     var elLabel = $C('Label', this);
     if (elLabel) {
       if (value)
@@ -213,7 +213,7 @@ var kInputControlProto = $extend({
         }
       }
     } else {
-      this.value = value;
+      this.value = $default(value, '');
     }
   },
   $getValue: function() {
