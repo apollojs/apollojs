@@ -234,6 +234,16 @@ function $hashObject(obj) {
   return hasher.digest('hex');
 }
 
+/**
+ * Use Object.prototype.toString to determin an element's type
+ * This method provide more stricter strategy on type detection, can be worked with typeof.
+ * @param  {Mixed} el   Any type
+ * @return {String}     One of [object, string, array, number, function]
+ */
+function $typeof(el) {
+  var matches = /^\[object (\w+)\]$/.exec(Object.prototype.toString.call(el));
+  return matches[1].toLowerCase();
+}
 $define(global, {
   $extend: $extend,
   $define: $define,
@@ -249,7 +259,8 @@ $define(global, {
   // $random: $random,
   $wrap: $wrap,
   $strip: $strip,
-  $hashObject: $hashObject
+  // $hashObject: $hashObject,
+  $typeof: $typeof,
 });
 
 $define(String.prototype, {

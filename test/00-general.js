@@ -111,7 +111,30 @@ describe('$extend', function() {
 
   });
 });
-
+describe('$typeof', function () {
+  it('should return array', function () {
+    $typeof([]).should.eql('array');
+  });
+  it('should return function', function() {
+    $typeof(function() {}).should.eql('function');
+  });
+  it('should return number', function() {
+    $typeof(0).should.eql('number');
+  });
+  it('should return object', function () {
+    $typeof({}).should.eql('object');
+  });
+  it('should return regexp', function() {
+    $typeof(/regexp/).should.eql('regexp');
+  });
+  it('should return string', function () {
+    $typeof('').should.eql('string');
+  });
+  it('should return object', function () {
+    var Ctor = function() {};
+    $typeof(new Ctor()).should.eql('object');
+  });
+});
 describe('Array', function() {
   describe('flatten', function() {
     it('should flatten [1, [2, 3], 4] as [1, 2, 3, 4]', function() {
