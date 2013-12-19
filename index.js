@@ -619,7 +619,7 @@ $define(Object, {
 		(function loop(lhv, mapping) {
 			Object.keys(mapping).forEach(function(key) {
 				var source = mapping[key];
-				if (/\W/.test(key)) key = '[' + key + ']';
+				if (/\W/.test(key)) key = '["' + key + '"]';
 				else key = '.' + key;
 
 
