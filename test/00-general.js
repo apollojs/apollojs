@@ -365,4 +365,28 @@ describe('Object', function() {
       });
     });
   });
+  describe('Transformer', function () {
+    it('should transform object', function () {
+      var transformer = new Object.Transformer({
+        name: true,
+        good: {
+          morning: '.name',
+          evening: '.name'
+        },
+        upperCase: function(el) {
+          return el.name.toUpperCase();
+        }
+      });
+      transformer.exec({
+        name: 'yan'
+      }).should.eql({
+        name: 'yan',
+        upperCase: 'YAN',
+        good: {
+          morning: 'yan',
+          evening: 'yan'
+        }
+      });
+    });
+  });
 });
