@@ -2,7 +2,7 @@
   "name": "apollo",
   "author": "Xiaoyi Shi <ashi009@gmail.com>",
   "description": "A framework to extend global objects with advance features.",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "private": true,
   "contributors": [
     "Yan Dong <idy0013@gmail.com>"
