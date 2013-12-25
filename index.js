@@ -510,6 +510,19 @@ $define(Array.prototype, {
       else
         res.push(this[i]);
     return res;
+  },
+  unique: function() {
+    var res = [];
+    var dict = {};
+    for (var i=0; i<this.length; ++i) {
+      var str_val = this[i].toString();
+      if (dict[str_val]) continue;
+      else {
+        dict[str_val] = true;
+        res.push(this[i]);
+      }
+    }
+    return res;
   }
 });
 

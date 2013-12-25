@@ -176,6 +176,17 @@ describe('Array', function() {
       [1].rotate(0).should.eql([1]);
     });
   });
+  describe('unique', function () {
+    it('should return [1,3,2] after unique [1,3,2,3,2,1]', function () {
+      [1,3,2,3,2,1].unique().should.eql([1,3,2]);
+    });
+    it('should return [] after unique []', function () {
+      [].unique().should.eql([]);
+    });
+    it('should return [1] after unique [1, "1"]', function () {
+      [1, "1"].unique().should.eql([1]);
+    });
+  });
 });
 
 describe('String', function() {
