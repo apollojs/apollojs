@@ -190,6 +190,7 @@ describe('String', function() {
       'ab'.startsWith('ab').should.be.ok;
       'a'.startsWith('b').should.not.be.ok;
       'ab'.startsWith('b').should.not.be.ok;
+      'ab'.startsWith('b', 1).should.be.ok;
     });
   });
   describe('endsWith', function() {
@@ -203,6 +204,7 @@ describe('String', function() {
       'ab'.endsWith('ab').should.be.ok;
       'a'.endsWith('b').should.not.be.ok;
       'ab'.endsWith('b').should.be.ok;
+      'ab'.endsWith('a', 1).should.be.ok;
     });
   });
   describe('toTitleCase', function() {

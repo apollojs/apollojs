@@ -300,22 +300,26 @@ $define(String.prototype, {
   /**
    * Tests if this string starts with the given one.
    * @param  {string} str string to test with
+   * @param  {number} pos optional, position to start compare, defaults
+   *                      to 0
    * @return {bool}       result
    */
-  startsWith: function(str) {
+  startsWith: function(str, pos) {
     if (str === null || str === undefined || str.length === 0)
       return true;
-    return this.substr(0, str.length) === str;
+    return this.substr(pos || 0, str.length) === str;
   },
   /**
    * Tests if this string ends with the given one.
    * @param  {string} str string to test with
+   * @param  {number} len optional, pretend this string is of given length,
+   *                      defaults to actual length
    * @return {bool}       result
    */
-  endsWith: function(str) {
+  endsWith: function(str, len) {
     if (str === null || str === undefined || str.length === 0)
       return true;
-    return this.substr(-str.length) === str;
+    return this.substr((len || this.length) - str.length, str.length) === str;
   },
   /**
    * Return a string in it's title form.
@@ -328,7 +332,7 @@ $define(String.prototype, {
       return letter.toUpperCase() + rest;
     });
   }
-});
+}, true);
 
 $define(Number.prototype, {
   /**
@@ -686,5 +690,4 @@ $define(RegExp, {
   }
 });
 
-require('./extend.js');
-require('./utils.js');
+require('./utils');
