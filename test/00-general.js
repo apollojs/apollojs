@@ -111,7 +111,30 @@ describe('$extend', function() {
 
   });
 });
-
+describe('$typeof', function () {
+  it('should return array', function () {
+    $typeof([]).should.eql('array');
+  });
+  it('should return function', function() {
+    $typeof(function() {}).should.eql('function');
+  });
+  it('should return number', function() {
+    $typeof(0).should.eql('number');
+  });
+  it('should return object', function () {
+    $typeof({}).should.eql('object');
+  });
+  it('should return regexp', function() {
+    $typeof(/regexp/).should.eql('regexp');
+  });
+  it('should return string', function () {
+    $typeof('').should.eql('string');
+  });
+  it('should return object', function () {
+    var Ctor = function() {};
+    $typeof(new Ctor()).should.eql('object');
+  });
+});
 describe('Array', function() {
   describe('flatten', function() {
     it('should flatten [1, [2, 3], 4] as [1, 2, 3, 4]', function() {
@@ -153,6 +176,17 @@ describe('Array', function() {
       [1].rotate(0).should.eql([1]);
     });
   });
+  describe('unique', function () {
+    it('should return [1,3,2] after unique [1,3,2,3,2,1]', function () {
+      [1,3,2,3,2,1].unique().should.eql([1,3,2]);
+    });
+    it('should return [] after unique []', function () {
+      [].unique().should.eql([]);
+    });
+    it('should return [1] after unique [1, "1"]', function () {
+      [1, "1"].unique().should.eql([1]);
+    });
+  });
 });
 
 describe('String', function() {
@@ -167,6 +201,7 @@ describe('String', function() {
       'ab'.startsWith('ab').should.be.ok;
       'a'.startsWith('b').should.not.be.ok;
       'ab'.startsWith('b').should.not.be.ok;
+      'ab'.startsWith('b', 1).should.be.ok;
     });
   });
   describe('endsWith', function() {
@@ -180,6 +215,7 @@ describe('String', function() {
       'ab'.endsWith('ab').should.be.ok;
       'a'.endsWith('b').should.not.be.ok;
       'ab'.endsWith('b').should.be.ok;
+      'ab'.endsWith('a', 1).should.be.ok;
     });
   });
   describe('toTitleCase', function() {
@@ -339,6 +375,28 @@ describe('Object', function() {
         x0: 0,
         x1: 1,
         x2: 2
+      });
+    });
+  });
+  describe('Transformer', function () {
+    it('should transform object', function () {
+      var transformer = new Object.Transformer({
+        name: true,
+        'good.morning': '.name',
+        good: {
+          evening: '.name'
+        },
+        upperCase: function(el) {return el.name.toUpperCase();}
+      });
+      transformer.exec({
+        name: 'yan'
+      }).should.eql({
+        name: 'yan',
+        upperCase: 'YAN',
+        'good.morning': 'yan',
+        good: {
+          evening: 'yan'
+        }
       });
     });
   });

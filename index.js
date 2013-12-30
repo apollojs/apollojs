@@ -250,18 +250,6 @@ var $wrap = (function() {
   };
 });
 
-/**
- * get a sha1 hash from the stringify JSON of obj
- * @param  {Object} obj
- * @return {String}
- */
-
-function $hashObject(obj) {
-  var hasher = crypto.createHash('sha1');
-  hasher.update(JSON.stringify(obj));
-  return hasher.digest('hex');
-}
-
 $define(window, {
   $extend: $extend,
   $define: $define,
@@ -276,8 +264,7 @@ $define(window, {
   // $bind: $bind,
   $default: $default,
   // $random: $random,
-  $wrap: $wrap,
-  $hashObject: $hashObject
+  $wrap: $wrap
 });
 
 $define(String.prototype, {
@@ -317,22 +304,26 @@ $define(String.prototype, {
   /**
    * Tests if this string starts with the given one.
    * @param  {string} str string to test with
+   * @param  {number} pos optional, position to start compare, defaults
+   *                      to 0
    * @return {bool}       result
    */
-  startsWith: function(str) {
+  startsWith: function(str, pos) {
     if (str === null || str === undefined || str.length === 0)
       return true;
-    return this.substr(0, str.length) === str;
+    return this.substr(pos || 0, str.length) === str;
   },
   /**
    * Tests if this string ends with the given one.
    * @param  {string} str string to test with
+   * @param  {number} len optional, pretend this string is of given length,
+   *                      defaults to actual length
    * @return {bool}       result
    */
-  endsWith: function(str) {
+  endsWith: function(str, len) {
     if (str === null || str === undefined || str.length === 0)
       return true;
-    return this.substr(-str.length) === str;
+    return this.substr((len || this.length) - str.length, str.length) === str;
   },
   /**
    * Return a string in it's title form.
@@ -541,6 +532,18 @@ $define(Array.prototype, {
       else
         res.push(this[i]);
     return res;
+  },
+  unique: function() {
+    var res = [];
+    var dict = {};
+    for (var i = 0; i < this.length; ++i) {
+      var key = this[i].toString();
+      if (dict.hasOwnProperty(key))
+        continue;
+      dict[key] = true;
+      res.push(this[i]);
+    }
+    return res;
   }
 });
 
@@ -642,8 +645,37 @@ $define(Object, {
       }
     });
     return res;
-  }
+  },
+  Transformer: function(mapping) {
+		var expr = [];
+		expr.push('exec=function (object) {');
+		expr.push('var res = {};');
+		(function loop(lhv, mapping) {
+			Object.keys(mapping).forEach(function(key) {
+				var source = mapping[key];
+				if (/\W/.test(key)) key = '["' + key + '"]';
+				else key = '.' + key;
 
+
+				var target = lhv + key;
+				if ($typeof(source) == 'object') {
+					expr.push(target + ' = {};');
+					return loop(target, source);
+				}
+
+				if (true === source)
+					source = 'object' + key;
+				else if ($typeof(source) == 'string')
+					source = 'object' + source;
+				else if ($typeof(source) == 'function')
+					source = '('+source.toString()+')(object)';
+				expr.push(target + ' = ' + source + ';');
+			});
+		})('res', mapping);
+		expr.push('return res;');
+		expr.push('}');
+		this.exec = eval(expr.join(''));
+  }
 });
 
 $define(Function, {
