@@ -514,6 +514,18 @@ $define(Array.prototype, {
       else
         res.push(this[i]);
     return res;
+  },
+  unique: function() {
+    var res = [];
+    var dict = {};
+    for (var i = 0; i < this.length; ++i) {
+      var key = this[i].toString();
+      if (dict.hasOwnProperty(key))
+        continue;
+      dict[key] = true;
+      res.push(this[i]);
+    }
+    return res;
   }
 });
 
@@ -615,8 +627,37 @@ $define(Object, {
       }
     });
     return res;
-  }
+  },
+  Transformer: function(mapping) {
+		var expr = [];
+		expr.push('exec=function (object) {');
+		expr.push('var res = {};');
+		(function loop(lhv, mapping) {
+			Object.keys(mapping).forEach(function(key) {
+				var source = mapping[key];
+				if (/\W/.test(key)) key = '["' + key + '"]';
+				else key = '.' + key;
 
+
+				var target = lhv + key;
+				if ($typeof(source) == 'object') {
+					expr.push(target + ' = {};');
+					return loop(target, source);
+				}
+
+				if (true === source)
+					source = 'object' + key;
+				else if ($typeof(source) == 'string')
+					source = 'object' + source;
+				else if ($typeof(source) == 'function')
+					source = '('+source.toString()+')(object)';
+				expr.push(target + ' = ' + source + ';');
+			});
+		})('res', mapping);
+		expr.push('return res;');
+		expr.push('}');
+		this.exec = eval(expr.join(''));
+  }
 });
 
 $define(Function, {
