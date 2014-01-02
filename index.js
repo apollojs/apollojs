@@ -500,24 +500,6 @@ $define(Array.prototype, {
     return this;
   },
   /**
-   * get last element in this array
-   * Note: It's not a reference when returning a non-object!
-   * @return {Mixed} last element
-   */
-  get back() {
-    if (this.length)
-      return this[this.length - 1];
-    return undefined;
-  },
-  /**
-   * get first element in this array
-   * Note: It's not a reference when returning a non-object!
-   * @return {Mixed} first element
-   */
-  get front() {
-    return this[0];
-  },
-  /**
    * Flattern a array with sub arrays.
    * @param  {bool} deep if continue to flatten sub arrays
    * @return {Array}     flattened array.
