@@ -137,7 +137,8 @@ $define(Element.prototype, document.documentElement.classList ? {
   $addClass: function(cls, duration) {
     if (!this.$hasClass(cls))
       this.className += ' ' + cls;
-    hideClassAfterDuration(this, cls, duration);
+    if (duration)
+      hideClassAfterDuration(this, cls, duration);
     return this;
   },
   $removeClass: function(cls) {
@@ -615,9 +616,10 @@ function CallbackBuffer(callback, time, noErrShortcut) {
     var waitTime = startTime + time - Date.now();
     if (waitTime <= 0)
       return callback.apply(null, arguments);
-    setTimeout(function(args) {
+    var args = arguments;
+    setTimeout(function() {
       callback.apply(null, args);
-    }, waitTime, arguments);
+    }, waitTime);
   };
 }
 
