@@ -544,7 +544,8 @@ $define(CSSStyleSheet.prototype, {
  * @param {Function} slowHandler        will be called in rate or minRate if
  *                                      event continuing emitted
  * @param {Function} fastHandler(event) will be called after each event emitted
- * Note that: slowHandler won't be called with event object,
+ * Note: if minRate < 1, slowHandler won't be called until finalDelay.
+ *   And slowHandler won't be called with event object,
  *   please store it yourself in fastHandler. And slowHandler will
  *   always be called after all event fired.
  */
@@ -556,18 +557,20 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
   if (rate < 0) {
     // This is a automatic throttle, which uses requestAnimationFrame
     handler = function(evt) {
+      handler.self = this;
       if (!animationFrameTimer) {
         animationFrameTimer = true;
         requestAnimationFrame(slowHandlerWrapperForAnimationFrame);
       }
       if (handler.fastHandler)
-        return handler.fastHandler(evt);
+        return handler.fastHandler.call(this, evt);
     };
   } else {
     var delay = 1000 / rate;
     var maxDelay = 1000 / minRate;
     var delayTimer = null, maxDelayTimer = null, finalDelayTimer = null;
     handler = function(evt) {
+      handler.self = this;
       clearTimeout(delayTimer);
       delayTimer = setTimeout(slowHandlerWrapper, delay);
       clearTimeout(finalDelayTimer);
@@ -576,7 +579,7 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
       if (maxDelayTimer === null && minRate > 0)
         maxDelayTimer = setTimeout(slowHandlerWrapper, maxDelay);
       if (handler.fastHandler)
-        return handler.fastHandler(evt);
+        return handler.fastHandler.call(this, evt);
     };
   }
 
@@ -588,12 +591,12 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
   function slowHandlerWrapper() {
     clearTimeout(maxDelayTimer);
     maxDelayTimer = null;
-    handler.slowHandler();
+    handler.slowHandler.call(handler.self);
   }
 
   function slowHandlerWrapperForAnimationFrame() {
     animationFrameTimer = false;
-    handler.slowHandler();
+    handler.slowHandler.call(handler.self);
   }
 
 }
@@ -612,13 +615,13 @@ function CallbackBuffer(callback, time, noErrShortcut) {
   var startTime = Date.now();
   return function(err) {
     if (err && !noErrShortcut)
-      return callback.apply(null, arguments);
+      return callback.apply(this, arguments);
     var waitTime = startTime + time - Date.now();
     if (waitTime <= 0)
-      return callback.apply(null, arguments);
-    var args = arguments;
+      return callback.apply(this, arguments);
+    var self = this, args = arguments;
     setTimeout(function() {
-      callback.apply(null, args);
+      callback.apply(self, args);
     }, waitTime);
   };
 }
