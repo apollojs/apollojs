@@ -551,35 +551,33 @@ $define(CSSStyleSheet.prototype, {
  */
 function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
 
-  var animationFrameTimer = false;
+  var defaultKeeper = {};
   var handler;
 
   if (rate < 0) {
     // This is a automatic throttle, which uses requestAnimationFrame
     handler = function(evt) {
-      handler.self = this;
-      if (!animationFrameTimer) {
-        animationFrameTimer = true;
-        requestAnimationFrame(slowHandlerWrapperForAnimationFrame);
+      var timerKeeper = this || defaultKeeper;
+      if (!timerKeeper.pEventThrottleAnimationFrame) {
+        timerKeeper.pEventThrottleAnimationFrame = true;
+        requestAnimationFrame(slowHandlerWrapperForAnimationFrame.bind(this));
       }
       if (handler.fastHandler)
         return handler.fastHandler.call(this, evt);
     };
   } else {
-    var delay = 1000 / rate;
-    var maxDelay = 1000 / minRate;
-    var delayTimer = null, maxDelayTimer = null, finalDelayTimer = null;
     handler = function(evt) {
-      handler.self = this;
+      var timerKeeper = this || defaultKeeper;
       if (rate > 0) {
-        clearTimeout(delayTimer);
-        delayTimer = setTimeout(slowHandlerWrapper, delay);
+        clearTimeout(timerKeeper.pEventThrottleDelay);
+        timerKeeper.pEventThrottleDelay = setTimeout(slowHandlerWrapper.bind(this), 1000 / rate);
       }
-      clearTimeout(finalDelayTimer);
-      if (finalDelay > 0)
-        finalDelayTimer = setTimeout(slowHandlerWrapper, finalDelay);
-      if (maxDelayTimer === null && minRate > 0)
-        maxDelayTimer = setTimeout(slowHandlerWrapper, maxDelay);
+      if (finalDelay > 0) {
+        clearTimeout(timerKeeper.pEventThrottleFinalDelay);
+        timerKeeper.pEventThrottleFinalDelay = setTimeout(slowHandlerWrapper.bind(this), finalDelay);
+      }
+      if (minRate > 0 && timerKeeper.pEventThrottleMaxDelay === undefined)
+        timerKeeper.pEventThrottleMaxDelay = setTimeout(slowHandlerWrapper.bind(this), 1000 / minRate);
       if (handler.fastHandler)
         return handler.fastHandler.call(this, evt);
     };
@@ -591,14 +589,14 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
   return handler;
 
   function slowHandlerWrapper() {
-    clearTimeout(maxDelayTimer);
-    maxDelayTimer = null;
-    handler.slowHandler.call(handler.self);
+    clearTimeout(this.pEventThrottleMaxDelay);
+    delete this.pEventThrottleMaxDelay;
+    handler.slowHandler.call(this);
   }
 
   function slowHandlerWrapperForAnimationFrame() {
-    animationFrameTimer = false;
-    handler.slowHandler.call(handler.self);
+    delete this.pEventThrottleAnimationFrame;
+    handler.slowHandler.call(this);
   }
 
 }
