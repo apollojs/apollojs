@@ -571,8 +571,10 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
     var delayTimer = null, maxDelayTimer = null, finalDelayTimer = null;
     handler = function(evt) {
       handler.self = this;
-      clearTimeout(delayTimer);
-      delayTimer = setTimeout(slowHandlerWrapper, delay);
+      if (rate > 0) {
+        clearTimeout(delayTimer);
+        delayTimer = setTimeout(slowHandlerWrapper, delay);
+      }
       clearTimeout(finalDelayTimer);
       if (finalDelay > 0)
         finalDelayTimer = setTimeout(slowHandlerWrapper, finalDelay);
