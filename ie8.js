@@ -99,6 +99,7 @@ if (!window.addEventListener)
     }
 
     function getWrappedListener(el, listener) {
+      var useWindow = el instanceof Window;
       var apolloId = getApolloId(el);
       var listenerId = listener.pListenerId;
       if (!apolloId) {
@@ -111,7 +112,7 @@ if (!window.addEventListener)
       }
       var wrappedListener = function(evt) {
         evt.currentTarget = el;
-        return listener.call(el, evt);
+        return listener.call(useWindow ? null : el, evt);
       };
       listeners[getKey(apolloId, listenerId)] = wrappedListener;
       return wrappedListener;
