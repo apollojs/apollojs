@@ -589,7 +589,7 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
   return handler;
 
   function slowHandlerWrapper(timerKeeper) {
-    clearTimeout(this.pEventThrottleMaxDelay);
+    clearTimeout(timerKeeper.pEventThrottleMaxDelay);
     delete timerKeeper.pEventThrottleMaxDelay;
     handler.slowHandler.call(this);
   }
