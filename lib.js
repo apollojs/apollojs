@@ -557,27 +557,27 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
   if (rate < 0) {
     // This is a automatic throttle, which uses requestAnimationFrame
     handler = function(evt) {
-      var timerKeeper = this || defaultKeeper;
+      var timerKeeper = this !== window && this || defaultKeeper;
       if (!timerKeeper.pEventThrottleAnimationFrame) {
         timerKeeper.pEventThrottleAnimationFrame = true;
-        requestAnimationFrame(slowHandlerWrapperForAnimationFrame.bind(this));
+        requestAnimationFrame(slowHandlerWrapperForAnimationFrame.bind(this, timerKeeper));
       }
       if (handler.fastHandler)
         return handler.fastHandler.call(this, evt);
     };
   } else {
     handler = function(evt) {
-      var timerKeeper = this || defaultKeeper;
+      var timerKeeper = this !== window && this || defaultKeeper;
       if (rate > 0) {
         clearTimeout(timerKeeper.pEventThrottleDelay);
-        timerKeeper.pEventThrottleDelay = setTimeout(slowHandlerWrapper.bind(this), 1000 / rate);
+        timerKeeper.pEventThrottleDelay = setTimeout(slowHandlerWrapper.bind(this, timerKeeper), 1000 / rate);
       }
       if (finalDelay > 0) {
         clearTimeout(timerKeeper.pEventThrottleFinalDelay);
-        timerKeeper.pEventThrottleFinalDelay = setTimeout(slowHandlerWrapper.bind(this), finalDelay);
+        timerKeeper.pEventThrottleFinalDelay = setTimeout(slowHandlerWrapper.bind(this, timerKeeper), finalDelay);
       }
       if (minRate > 0 && timerKeeper.pEventThrottleMaxDelay === undefined)
-        timerKeeper.pEventThrottleMaxDelay = setTimeout(slowHandlerWrapper.bind(this), 1000 / minRate);
+        timerKeeper.pEventThrottleMaxDelay = setTimeout(slowHandlerWrapper.bind(this, timerKeeper), 1000 / minRate);
       if (handler.fastHandler)
         return handler.fastHandler.call(this, evt);
     };
@@ -588,14 +588,14 @@ function EventThrottle(rate, minRate, finalDelay, slowHandler, fastHandler) {
 
   return handler;
 
-  function slowHandlerWrapper() {
+  function slowHandlerWrapper(timerKeeper) {
     clearTimeout(this.pEventThrottleMaxDelay);
-    delete this.pEventThrottleMaxDelay;
+    delete timerKeeper.pEventThrottleMaxDelay;
     handler.slowHandler.call(this);
   }
 
-  function slowHandlerWrapperForAnimationFrame() {
-    delete this.pEventThrottleAnimationFrame;
+  function slowHandlerWrapperForAnimationFrame(timerKeeper) {
+    delete timerKeeper.pEventThrottleAnimationFrame;
     handler.slowHandler.call(this);
   }
 
