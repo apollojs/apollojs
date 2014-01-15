@@ -616,7 +616,7 @@ $define(Object, {
       var proj = projection[key];
       if (proj) {
         var el = object[key];
-        if (deep && el !== undefined && typeof el == 'object' && typeof proj == "object") {
+        if (deep && el !== undefined && $typeof(el) == 'object' && $typeof(proj) == "object") {
           res[key] = Object.project(el, projection[key], deep, keep);
         } else {
           if (keep)
