@@ -146,12 +146,13 @@ function $error() {
 
 function $clone(obj, deep) {
   var res;
+  var _deep = (deep === true ? true: deep - 1);
   if (Array.isArray(obj)) {
     res = obj.slice(0);
     if (deep)
       for (var i = 0; i < res.length; i++)
         if (Object.isObject(res[i]))
-          res[i] = $clone(res[i], true);
+          res[i] = $clone(res[i], _deep);
   } else if (Object.isObject(obj)) {
     res = {};
     for (var key in obj)
@@ -159,7 +160,7 @@ function $clone(obj, deep) {
     if (deep)
       for (var key in obj)
         if (Object.isObject(res[key]))
-          res[key] = $clone(res[key], true);
+          res[key] = $clone(res[key], _deep);
   }
   return res;
 }
