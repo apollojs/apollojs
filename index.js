@@ -9,7 +9,6 @@ var crypto = require('crypto');
  * @param  {bool} deep       Doing an deep extend (perform extend on every object property)
  * @return {Object}          reference to obj
  */
-
 function $extend(obj, ext, override, deep) {
   if (override) {
     if (deep)
@@ -55,7 +54,6 @@ function _deepExtend(obj, ext) {
  * @param  {bool} preserve    preserve existing property
  * @return {Object}           reference to object
  */
-
 function $define(object, prototype, preserve) {
   Object.getOwnPropertyNames(prototype).forEach(function(key) {
     if (preserve && (key in object))
@@ -76,7 +74,6 @@ function $define(object, prototype, preserve) {
  * @param  {Object} prototype prototype of Class
  * @return {Function}         reference to constructor
  */
-
 function $declare(fn, prototype) {
   fn.prototype.constructor = fn;
   $define(fn.prototype, prototype);
@@ -90,7 +87,6 @@ function $declare(fn, prototype) {
  * @param  {Object} prototype prototype of Class
  * @return {Function}         reference to constructor
  */
-
 function $inherit(fn, parent, prototype) {
   fn.prototype = {
     constructor: fn,
@@ -106,7 +102,6 @@ function $inherit(fn, parent, prototype) {
  * @param  {Object}   values object holding all enumerates want to define
  * @return {Function}        reference to constructor
  */
-
 function $defenum(fn, values) {
   $define(fn, values);
   $define(fn.prototype, values);
@@ -119,23 +114,35 @@ function $defenum(fn, values) {
  *   apart from it returns an Error object instead of string.
  * @return {Error} generated Error instance
  */
-
 function $error() {
   return new Error(util.format.apply(util, arguments));
 }
 
 /**
- * Setting prefix for every property in an object.
- * @param  {Object} obj    object to process
- * @param  {string} prefix [description]
- * @return {[type]}        [description]
+ * Generate a deep copy of an Object with its primitive typed
+ * fields (exclude functions).
+ * @param  {mixed} obj  source object
+ * @return {mixed}      cloned object
  */
-// function $prefix(obj, prefix, inplace) {
-//   var res = {};
-//   for (var key in obj)
-//     res[prefix + key] = obj[key];
-//   return res;
-// }
+function $valueCopy(obj) {
+  var res;
+  console.log(Object.isObjectStrict(obj));
+  if (Array.isArray(obj)) {
+    res = obj.slice(0);
+    for (var i = 0; i < res.length; i++)
+      if (Object.isObject(res[i]))
+        res[i] = $valueCopy(res[i]);
+  } else if (Object.isObjectStrict(obj)) {
+    res = {};
+    for (var key in obj)
+      res[key] = $valueCopy(obj[key]);
+  } else if (Function.isFunction(obj)) {
+    return undefined;
+  } else {
+    return obj;
+  }
+  return res;
+}
 
 /**
  * Generates a copy of an Object.
@@ -143,43 +150,28 @@ function $error() {
  * @param  {bool} deep  perform a deep clone
  * @return {Mixed}      cloned object
  */
-
 function $clone(obj, deep) {
   var res;
+  var _deep = deep === true || deep - 1;
   if (Array.isArray(obj)) {
     res = obj.slice(0);
     if (deep)
       for (var i = 0; i < res.length; i++)
         if (Object.isObject(res[i]))
-          res[i] = $clone(res[i], true);
-  } else if (Object.isObject(obj)) {
+          res[i] = $clone(res[i], _deep);
+  } else if (Object.isObjectStrict(obj)) {
     res = {};
     for (var key in obj)
       res[key] = obj[key];
     if (deep)
       for (var key in obj)
         if (Object.isObject(res[key]))
-          res[key] = $clone(res[key], true);
+          res[key] = $clone(res[key], _deep);
+  } else {
+    return obj;
   }
   return res;
 }
-
-/**
- * Merge an object to an other object
- * @param  {[type]} a [description]
- * @param  {[type]} b [description]
- * @return {[type]}   [description]
- */
-// function $merge(a, b) {
-//   return $extend($clone(a), b);
-// }
-
-// function $bind(org, $this) {
-//   var obj = {};
-//   for (var key in org)
-//     obj[key] = org[key].bind($this);
-//   return obj;
-// }
 
 /**
  * Return default value of an undefined variable.
@@ -187,14 +179,9 @@ function $clone(obj, deep) {
  * @param  {Mixed} def  default value
  * @return {Mixed}
  */
-
 function $default(val, def) {
   return val === undefined ? def : val;
 }
-
-// function $random(val) {
-//   return Math.floor(Math.random() * val);
-// }
 
 /**
  * Wrap an object with given Class.
@@ -203,7 +190,6 @@ function $default(val, def) {
  * @param  {Function} Type  wrapping Class
  * @return {Object}         wrapped object
  */
-
 function $wrap(obj, Type) {
   obj.__proto__ = Type.prototype;
   if (Type.__wrap)
@@ -216,34 +202,24 @@ function $wrap(obj, Type) {
  * @param  {Object} object   object to be stripped
  * @return {Object}          object stripped
  */
-
 function $strip(object) {
   object.__proto__ = Object.prototype;
   return object;
 }
 
 /**
- * get a sha1 hash from the stringify JSON of obj
- * @param  {Object} obj
- * @return {String}
+ * Use Object.prototype.toString to determine an element's type
+ * This method provide more stricter strategy on type detection,
+ * can be worked with typeof.
+ * @param  {Mixed}  obj  Variable
+ * @return {String}      type of the variable, like typeof,
+ *                       but with better precision.
  */
-
-function $hashObject(obj) {
-  var hasher = crypto.createHash('sha1');
-  hasher.update(JSON.stringify(obj));
-  return hasher.digest('hex');
+function $typeof(obj) {
+  var type = Object.prototype.toString.call(obj);
+  return type.substring(8, type.length - 1).toLowerCase();
 }
 
-/**
- * Use Object.prototype.toString to determin an element's type
- * This method provide more stricter strategy on type detection, can be worked with typeof.
- * @param  {Mixed} el   Any type
- * @return {String}     One of [object, string, array, number, function]
- */
-function $typeof(el) {
-  var matches = /^\[object (\w+)\]$/.exec(Object.prototype.toString.call(el));
-  return matches[1].toLowerCase();
-}
 $define(global, {
   $extend: $extend,
   $define: $define,
@@ -251,16 +227,12 @@ $define(global, {
   $inherit: $inherit,
   $defenum: $defenum,
   $error: $error,
-  // $prefix: $prefix,
+  $valueCopy: $valueCopy,
   $clone: $clone,
-  // $merge: $merge,
-  // $bind: $bind,
   $default: $default,
-  // $random: $random,
   $wrap: $wrap,
   $strip: $strip,
-  // $hashObject: $hashObject,
-  $typeof: $typeof,
+  $typeof: $typeof
 });
 
 $define(String.prototype, {
@@ -615,14 +587,14 @@ $define(Object, {
     Object.keys(projection).forEach(function(key) {
       var proj = projection[key];
       if (proj) {
-        var el = object[key];
-        if (deep && el !== undefined && typeof el == 'object' && typeof proj == "object") {
-          res[key] = Object.project(el, projection[key], deep, keep);
+        var obj = object[key];
+        if (deep && Object.isObjectStrict(obj) && Object.isObjectStrict(proj)) {
+          res[key] = Object.project(obj, projection[key], deep, keep);
         } else {
           if (keep)
-            res[key] = el;
-          else if (el !== undefined)
-            res[key] = el;
+            res[key] = obj;
+          else if (obj !== undefined)
+            res[key] = obj;
         }
       }
     });
