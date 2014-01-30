@@ -62,7 +62,7 @@ $define(HTMLFormElement.prototype, {
       var control = controls[name];
       var value = values[name];
       var type = getType(control);
-      var validator = getValidator(control.$getData('validator'), this.getAttribute('name'));
+      var validator = getValidator(control.$getData('validator') || type, this.getAttribute('name'));
       // console.log(name, value, validator);
       if (control.hasAttribute('required') && !value ||
           value && (
@@ -138,8 +138,6 @@ function validateTextControl(control) {
   var pattern = control.$getAttr('pattern');
   if (pattern)
     pattern = new RegExp('^' + pattern + '$');
-  if (control.type == 'email')
-    pattern = pattern || /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
   if (pattern && !pattern.test(value))
     return false;
   return true;
@@ -242,5 +240,11 @@ $define(HTMLButtonElement.prototype, kButtonControlProto);
 $define(HTMLInputElement.prototype, kInputControlProto);
 $define(HTMLSelectElement.prototype, kControlProto);
 $define(HTMLTextAreaElement.prototype, kControlProto);
+
+HTMLFormElement.$registerValidators({
+  email: function(control, value) {
+    return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value);
+  }
+});
 
 })();
