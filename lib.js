@@ -49,7 +49,7 @@ function $E(name, att) {
 
 $define(Node.prototype, {
   $ancestorOf: function(node, noself) {
-    for (node = noself ? this.parentNode : node;
+    for (node = noself ? node.parentNode : node;
         node;
         node = node.parentNode)
       if (this === node) return true;
