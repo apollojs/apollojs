@@ -37,9 +37,10 @@ function _overrideDeepExtend(obj, ext) {
 
 function _deepExtend(obj, ext) {
   for (var key in ext)
-    if (!(key in obj)) {
+    if (Object.isObjectStrict(obj[key]) && Object.isObjectStrict(ext[key]))
+      _deepExtend(obj[key], ext[key]);
+    else if (!(key in obj))
       obj[key] = ext[key];
-    }
 }
 
 /**
