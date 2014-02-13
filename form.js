@@ -4,11 +4,14 @@ var kTextInputTypes = {
   'text': true,
   'email': true,
   'password': true,
+  'url': true,
+  'tel': true,
   'search': true
 };
 
 var kNumericInputTypes = {
-  'number': true
+  'number': true,
+  'range': true
 };
 
 $define(HTMLFormElement.prototype, {
