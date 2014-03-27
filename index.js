@@ -1,6 +1,8 @@
 var util = require('util');
 var crypto = require('crypto');
 
+if (!global.$apollo) {
+
 /**
  * Extend an object with another object
  * @param  {Object} obj      object to be extended
@@ -222,6 +224,7 @@ function $typeof(obj) {
 }
 
 $define(global, {
+  $apollo: require('./package').version,
   $extend: $extend,
   $define: $define,
   $declare: $declare,
@@ -724,3 +727,5 @@ $define(RegExp, {
 });
 
 require('./utils');
+
+}
