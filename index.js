@@ -501,6 +501,10 @@ $define(Array.prototype, {
         res.push(this[i]);
     return res;
   },
+  /**
+   * Return unique elements in the array
+   * @return {Array}
+   */
   unique: function() {
     var res = [];
     var dict = {};
@@ -512,6 +516,21 @@ $define(Array.prototype, {
       res.push(this[i]);
     }
     return res;
+  },
+  /**
+   * shuffle elements in the array in-place
+   * @return {Array}
+   */
+  shuffle: function() {
+    for (var n = this.length; n > 0; n--) {
+      var idx = Math.floor(n * Math.random());
+      if (idx != n - 1) {
+        var tmp = this[idx];
+        this[idx] = this[n - 1];
+        this[n - 1] = tmp;
+      }
+    }
+    return this;
   }
 });
 
