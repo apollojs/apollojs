@@ -632,9 +632,10 @@ function CallbackBuffer(callback, time, noErrShortcut) {
  *   once. All the following caller will be cached in a queue and get
  *   called after the original callback being called. If the original
  *   callback is already called, the callers will be called immediately.
- * @param {Function} fn function
+ * @param {Function} fn       function
+ * @param {bool}     reusable true if it's reusable.
  */
-function CallOnce(fn) {
+function CallOnce(fn, reusable) {
   var loaded = false, loading = false;
   var queue = [];
   var args;
@@ -646,12 +647,13 @@ function CallOnce(fn) {
     if (loading)
       return;
     loading = true;
-    fn(function() {
+    fn.call(this, function() {
       args = arguments;
-      loaded = true;
+      loading = false;
+      loaded = !reusable;
       for (var i = 0; i < queue.length; i++)
         queue[i].apply(null, args);
-      queue = null;
+      queue.length = 0;
     });
   };
 }
