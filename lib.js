@@ -627,7 +627,7 @@ function CallbackBuffer(callback, time, noErrShortcut) {
 }
 
 /**
- * Create a wrapper for a async function which takes no parameters,
+ * Create a wrapper for a callback function which takes no parameters,
  *   and this wrapper will make sure the function will be called only
  *   once. All the following caller will be cached in a queue and get
  *   called after the original callback being called. If the original
@@ -658,6 +658,18 @@ function CallOnce(fn, reusable) {
   };
 }
 
+/**
+ * Create a wrapper for a callback function, which will guarantee no error
+ *   argument will be passed to it.
+ * @param {Function} fn function being wrapped
+ */
+function StripError(fn) {
+  return function(err) {
+    err = null;
+    fn.apply(this, arguments);
+  };
+}
+
 $define(window, {
   $I: $I,
   $TA: $TA,
@@ -672,7 +684,8 @@ $define(window, {
   StyleSheet: StyleSheet,
   EventThrottle: EventThrottle,
   CallbackBuffer: CallbackBuffer,
-  CallOnce: CallOnce
+  CallOnce: CallOnce,
+  StripError: StripError
 });
 
 if (!window.requestAnimationFrame)
