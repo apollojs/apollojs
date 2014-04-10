@@ -377,7 +377,7 @@ function Request(method, url, headers, payload, resDataType, callback, progress)
     callback(xhr.status, null, xhr);
   };
   xhr.onerror = function(evt) {
-    callback(evt, xhr);
+    callback(evt, null, xhr);
   };
   if (progress) {
     if (typeof XMLHttpRequestProgressEvent !== 'undefined') {
