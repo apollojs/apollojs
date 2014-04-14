@@ -94,7 +94,7 @@ $define(Node.prototype, {
     return this;
   },
   $setFirstTextNodeValue: function(value) {
-    for (var node = this.firstChild; node; node = node.nextChild)
+    for (var node = this.firstChild; node; node = node.nextSibling)
       if (node.nodeType === 3) {
         node.nodeValue = value;
         return this;
