@@ -149,6 +149,7 @@ function $format(str) {
 function $error() {
   return new Error($format.apply(null, arguments));
 }
+#define ERROR(args...) Error($format(args))
 
 /**
  * Generate a deep copy of an Object with its primitive typed

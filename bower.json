@@ -2,7 +2,7 @@
   "name": "apollojs",
   "author": "Xiaoyi Shi <ashi009@gmail.com>",
   "description": "A framework to extend global objects with advance features.",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "contributors": [
     "Yan Dong <idy0013@gmail.com>",
     "Steve Yang <me@iyyang.com>"
