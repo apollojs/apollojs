@@ -115,7 +115,7 @@ function hideClassAfterDuration(el, cls, duration) {
 }
 
 // for shitting IE9.
-$define(Element.prototype, document.documentElement.classList ? {
+$define(HTMLElement.prototype, document.documentElement.classList ? {
   $addClass: function(cls, duration) {
     this.classList.add(cls);
     if (duration)
@@ -152,6 +152,37 @@ $define(Element.prototype, document.documentElement.classList ? {
     return this.$hasClass(cls) ? this.$removeClass(cls) : this.$addClass(cls);
   }
 });
+
+#ifdef APOLLO_SVG
+$define(SVGElement.prototype, {
+  $addClass: function(cls, duration) {
+    if (!this.$hasClass(cls)) {
+      if (this.getAttribute('class'))
+        this.setAttribute('class', this.getAttribute('class') + ' ' + cls);
+      else
+        this.setAttribute('class', cls);
+    }
+    if (duration)
+      hideClassAfterDuration(this, cls, duration);
+    return this;
+  },
+  $removeClass: function(cls) {
+    if (this.$hasClass(cls)) {
+      if (this.getAttribute('class') === cls)
+        this.removeAttribute('class')
+      else
+        this.setAttribute('class', this.getAttribute('class').replace(new RegExp('\\s*\\b' + cls + '\\b', 'g'), ''));
+    }
+    return this;
+  },
+  $hasClass: function(cls) {
+    return (new RegExp('\\b' + cls + '\\b')).test(this.getAttribute('class'));
+  },
+  $toggleClass: function(cls) {
+    return this.$hasClass(cls) ? this.$removeClass(cls) : this.$addClass(cls);
+  }
+});
+#endif
 
 $define(Element.prototype, {
   $setClass: function(cls, set, duration) {
@@ -290,7 +321,7 @@ function toDatasetName(name) {
   });
 }
 
-$define(Element.prototype, document.documentElement.dataset ? {
+$define(HTMLElement.prototype, document.documentElement.dataset ? {
   $setData: function(name, value, json) {
     if (json)
       value = JSON.stringify(value);
@@ -325,6 +356,27 @@ $define(Element.prototype, document.documentElement.dataset ? {
     return this;
   }
 });
+
+#ifdef APOLLO_SVG
+$define(SVGElement.prototype, {
+  $setData: function(name, value, json) {
+    if (json)
+      value = JSON.stringify(value);
+    this.setAttribute(toDatasetName(name), value);
+    return this;
+  },
+  $getData: function(name, json) {
+    var value = this.getAttribute(toDatasetName(name)) || undefined;
+    if (value && json)
+      return JSON.parse(value);
+    return value;
+  },
+  $removeData: function(name) {
+    this.removeAttribute(toDatasetName(name));
+    return this;
+  }
+});
+#endif
 
 /**
  * Request a web resource
