@@ -1,5 +1,5 @@
-#include "bower_components/es5-shim/es5-shim.js"
-#include "bower_components/es5-shim/es5-sham.js"
+#include "es5-shim/es5-shim.js"
+#include "es5-shim/es5-sham.js"
 
 #include "apollo.js"
 #include "extend.js"
