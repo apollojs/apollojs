@@ -489,11 +489,6 @@ $declare(Tmpl, {
   }
 });
 
-function StyleSheet() {
-  var styleSheet = document.head.appendChild(document.createElement('style'));
-  styleSheet.type = 'text/css';
-  return document.styleSheets[document.styleSheets.length-1];
-}
 $define(CSSStyleSheet.prototype, {
   clear: function() {
     this.disabled = true;
@@ -681,7 +676,6 @@ $define(window, {
   $E: $E,
   Request: Request,
   Tmpl: Tmpl,
-  StyleSheet: StyleSheet,
   EventThrottle: EventThrottle,
   CallbackBuffer: CallbackBuffer,
   CallOnce: CallOnce,
