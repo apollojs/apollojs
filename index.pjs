@@ -1,0 +1,11 @@
+#include "bower_components/es5-shim/es5-shim.js"
+#include "bower_components/es5-shim/es5-sham.js"
+
+#include "apollo.js"
+#include "extend.js"
+#include "ie-fix.js"
+#include "form.js"
+
+#ifdef APOLLO_UTILS
+#include "utils.js"
+#endif // APOLLO_UTILS

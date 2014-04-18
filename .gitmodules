@@ -1,3 +1,0 @@
-[submodule "es5-shim"]
-	path = es5-shim
-	url = https://github.com/kriskowal/es5-shim.git

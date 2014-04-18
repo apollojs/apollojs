@@ -1,19 +1,21 @@
 {
-  "name": "apollo-client",
+  "name": "apollojs",
   "author": "Xiaoyi Shi <ashi009@gmail.com>",
   "description": "A framework to extend global objects with advance features.",
   "version": "1.0.16",
-  "private": true,
   "contributors": [
     "Yan Dong <idy0013@gmail.com>"
   ],
-  "scripts": {
-    "postinstall": "curl https://codeload.github.com/kriskowal/es5-shim/tar.gz/master | tar xz; mv es5-shim-master es5-shim",
-    "test": "mocha"
+  "main": "index.pjs",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "es5-shim": ">= 2.3.0"
   },
-  "main": "./index.js",
   "license": "MIT",
   "devDependencies": {
-    "should": "*"
   }
 }

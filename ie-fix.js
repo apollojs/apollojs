@@ -58,6 +58,8 @@ if (!document.getElementsByClassName)
     Object.defineProperties(Element.prototype, proto);
   })();
 
+#ifdef APOLLO_IE8
+
 if (!window.addEventListener)
   (function() {
     Object.defineProperties(Event.prototype, {
@@ -149,6 +151,8 @@ if (!window.addEventListener)
     Object.defineProperties(Window.prototype, proto);
 
   })();
+
+#endif
 
 if (!window.console)
   window.console = {

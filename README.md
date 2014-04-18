@@ -1,7 +1,6 @@
-nono-packages
-=============
+apollojs Client
+===============
 
-A repo contains all private npm packages and experimental features.
-
-DO NOT merge anythign to the master branch, always check out a new
-branch for your own usage.
+apollojs is designed to messup all global objects, providing a series of shorthand
+functions to manipulate DOM, array, etc. providing standard `addEventListener`,
+`removeEventListener` to IE8 (in case you need it.)
