@@ -1,7 +1,10 @@
 %.js: %.pjs
 	cpp -P -C -w -undef -Ibower_components $(OPTIONS) $< > $@
 
-all: index.js
+.PHONY: all clean client
+
+all: client
+client: client.js
 
 clean:
-	$(RM) -f index.js
+	$(RM) -f *.js
