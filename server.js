@@ -1,8 +1,15 @@
-#ifndef APOLLO_CLIENT
+
+
+
+
+
+
+
+
 
 if (!global.$apollo) {
 
-#endif // !APOLLO_CLIENT
+
 
 /**
  * Extend an object with another object
@@ -92,34 +99,7 @@ function $declare(fn, prototype) {
  * @param  {Object} prototype prototype of Class
  * @return {Function}         reference to constructor
  */
-#ifdef APOLLO_CLIENT
 
-var $inherit = (function() {
-  if (Object.__proto__)
-    return function(fn, parent, prototype) {
-      fn.prototype = {
-        constructor: fn,
-        __proto__: parent.prototype
-      };
-      if (prototype)
-        $define(fn.prototype, prototype);
-      return fn;
-    };
-  // Fix IE support
-  return function (fn, parent, prototype) {
-    var proto = {};
-    Object.getOwnPropertyNames(parent.prototype).forEach(function(name) {
-      proto[name] = parent.prototype[name];
-    });
-    proto.constructor = fn;
-    $define(fn.prototype, proto);
-    if (prototype)
-      $define(fn.prototype, prototype);
-    return fn;
-  };
-})();
-
-#else // APOLLO_CLIENT
 
 function $inherit(fn, parent, prototype) {
   fn.prototype = {
@@ -131,7 +111,7 @@ function $inherit(fn, parent, prototype) {
   return fn;
 }
 
-#endif // APOLLO_CLIENT
+
 
 /**
  * Adding enumerations to a Class (both static and prototype).
@@ -150,23 +130,11 @@ function $defenum(fn, values) {
  * @param  {string} str pattern
  * @return {string}     formatted string
  */
-#ifdef APOLLO_CLIENT
 
-function $format(str) {
-  var args = arguments;
-  var index = 1;
-  return str.replace(/%([sdj])/g, function(all, type) {
-    if (type === 'j')
-      return JSON.stringify(args[index++]);
-    return args[index++];
-  });
-}
-
-#else // APOLLO_CLIENT
 
 var $format = require('util').format;
 
-#endif // APOLLO_CLIENT
+
 
 /**
  * Making an Error instance with given format and parameters.
@@ -177,7 +145,7 @@ var $format = require('util').format;
 function $error() {
   return new Error($format.apply(null, arguments));
 }
-#define ERROR(args...) Error($format(args))
+
 
 /**
  * Generate a deep copy of an Object with its primitive typed
@@ -251,26 +219,7 @@ function $default(val, def) {
  * @param  {Function} Type  wrapping Class
  * @return {Object}         wrapped object
  */
-#ifdef APOLLO_CLIENT
 
-var $wrap = (function() {
-  if (Object.__proto__)
-    return function(obj, Type) {
-      obj.__proto__ = Type.prototype;
-      if (Type.__wrap)
-        Type.__wrap(obj);
-      return obj;
-    };
-  // Fix IE support
-  return function(obj, Type) {
-    $extend(obj, Type.prototype);
-    if (Type.__wrap)
-      Type.__wrap(obj);
-    return obj;
-  };
-});
-
-#else // APOLLO_CLIENT
 
 function $wrap(obj, Type) {
   obj.__proto__ = Type.prototype;
@@ -302,7 +251,7 @@ function $typeof(obj) {
   return type.substring(8, type.length - 1).toLowerCase();
 }
 
-#endif // APOLLO_CLIENT
+
 
 $define(global, {
   $extend: $extend,
@@ -316,12 +265,12 @@ $define(global, {
   $clone: $clone,
   $default: $default,
   $wrap: $wrap
-#ifndef APOLLO_CLIENT
+
   ,
   $apollo: require('./package').version,
   $strip: $strip,
   $typeof: $typeof
-#endif // !APOLLO_CLIENT
+
 });
 
 $define(String.prototype, {
@@ -694,7 +643,7 @@ $define(Object, {
   isObjectStrict: function(obj) {
     return Object.prototype.toString.call(obj) === '[object Object]';
   }
-#ifndef APOLLO_CLIENT
+
   ,
   /**
    * project $object with projectiong, same behaviour with mongodb projection
@@ -754,7 +703,7 @@ $define(Object, {
 		expr.push('}');
 		this.exec = eval(expr.join(''));
   }
-#endif // !APOLLO_CLIENT
+
 });
 
 $define(Function, {
@@ -828,10 +777,32 @@ $define(RegExp, {
   }
 });
 
-#include "utils.pjs"
 
-#ifndef APOLLO_CLIENT
+
+
+$define(global, {
+  $utils: {
+    encodeRLE: function(str) {
+      return str.replace(/([^0-9a-z])\1+/g, function(all, cap) {
+        var replacement = all.length.toString(36) + cap;
+        if (replacement.length < all.length)
+          return replacement;
+        return all;
+      });
+    },
+    decodeRLE: function(str) {
+      return str.replace(/([0-9a-z]+)([^0-9a-z])/g, function(all, count, cap) {
+        return cap.repeat(parseInt(count, 36));
+      });
+    }
+  }
+});
+
+
+
+
 
 }
 
-#endif // !APOLLO_CLIENT
+
+

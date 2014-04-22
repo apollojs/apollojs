@@ -1,0 +1,3 @@
+#define GLOBAL global
+
+#include "lib/apollo.pjs"

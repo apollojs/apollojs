@@ -2,23 +2,23 @@
   "name": "apollojs",
   "author": "Xiaoyi Shi <ashi009@gmail.com>",
   "description": "A framework to extend global objects with advance features.",
+  "version": "1.1.0",
   "contributors": [
     "Yan Dong <idy0013@gmail.com>",
     "Steve Yang <me@iyyang.com>"
   ],
-  "main": "client.js",
-  "ignore": [
-    "**/.*",
-    "server.*",
-    "package.json",
-    "test",
-    "node_modules",
-    "bower_components"
-  ],
-  "dependencies": {
-    "es5-shim": ">= 2.3.0"
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/apollojs/apollojs.git"
   },
+  "scripts": {
+    "prepublish": "make clean server",
+    "pretest": "make clean server",
+    "test": "mocha"
+  },
+  "main": "./server.js",
   "license": "MIT",
   "devDependencies": {
+    "should": "*"
   }
 }

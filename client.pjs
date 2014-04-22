@@ -19,6 +19,4 @@
 #include "lib/client/dom.pjs"
 #include "lib/client/form.pjs"
 
-#include "lib/utils.pjs"
-
 })();
