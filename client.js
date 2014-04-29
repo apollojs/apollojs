@@ -755,7 +755,7 @@ if (!Function.prototype.bind) {
         return fn.apply(self, args.concat(slice.call(arguments)));
       };
     };
-  })(Arrayl.prototype.slice);
+  })(Array.prototype.slice);
 }
 
 
@@ -881,7 +881,7 @@ function hideClassAfterDuration(el, cls, duration) {
 }
 
 // for shitting IE9.
-$define(HTMLElement.prototype, document.documentElement.classList ? {
+$define(Element.prototype, document.documentElement.classList ? {
   $addClass: function(cls, duration) {
     this.classList.add(cls);
     if (duration)
@@ -895,8 +895,8 @@ $define(HTMLElement.prototype, document.documentElement.classList ? {
   $hasClass: function(cls) {
     return this.classList.contains(cls);
   },
-  $toggleClass: function(cls, force) {
-    this.classList.toggle(cls, force);
+  $toggleClass: function(cls) {
+    this.classList.toggle(cls);
     return this;
   }
 } : {
@@ -914,18 +914,14 @@ $define(HTMLElement.prototype, document.documentElement.classList ? {
   $hasClass: function(cls) {
     return (new RegExp('\\b' + cls + '\\b')).test(this.className);
   },
-  $toggleClass: function(cls, force) {
-    if (force === undefined)
-      force = !this.$hasClass(cls);
-    if (force)
-      this.$addClass(cls);
-    else
+  $toggleClass: function(cls) {
+    if (this.$hasClass(cls))
       this.$removeClass(cls);
+    else
+      this.$addClass(cls);
     return this;
   }
 });
-
-
 
 $define(Element.prototype, {
   $setClass: function(cls, set, duration) {
@@ -1064,7 +1060,7 @@ function toDatasetName(name) {
   });
 }
 
-$define(HTMLElement.prototype, document.documentElement.dataset ? {
+$define(Element.prototype, document.documentElement.dataset ? {
   $setData: function(name, value, json) {
     if (json)
       value = JSON.stringify(value);
