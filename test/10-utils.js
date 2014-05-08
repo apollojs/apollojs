@@ -1,5 +1,7 @@
 require('../');
 
+if (global.$utils) {
+
 describe('$utils', function() {
   describe('encodeRLE', function() {
     it('should encode string ([^0-9a-z]) in RLE format', function() {
@@ -35,3 +37,5 @@ describe('$utils', function() {
   });
 
 });
+
+}

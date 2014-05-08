@@ -185,7 +185,6 @@ function $error() {
  */
 function $valueCopy(obj) {
   var res;
-  console.log(Object.isObjectStrict(obj));
   if (Array.isArray(obj)) {
     res = obj.slice(0);
     for (var i = 0; i < res.length; i++)
@@ -482,6 +481,8 @@ $define(Array.prototype, {
    * Push a value iif it's not in this array, and return value's index.
    * @param  {Mixed} val  new value
    * @return {int}        index of the value
+   * Note: This only works with primitive typed elements, which can be found
+   *       with Array#indexOf().
    */
   add: function(val) {
     var index = this.indexOf(val);
@@ -492,14 +493,20 @@ $define(Array.prototype, {
   /**
    * Find a value in the array and remove it.
    * @param  {Mixed} val  value to remove
+   * @return {Array}      this
+   * Note: This only works with primitive typed elements, which can be found
+   *       with Array#indexOf().
    */
   remove: function(val) {
     var index = this.indexOf(val);
-    if (index < 0)
-      return;
-    for (index++; index < this.length; index++)
-      this[index - 1] = this[index];
-    this.pop();
+    if (index > -1) {
+      // Shift copy elements instead of Array#splice() for better performance.
+      // http://jsperf.com/fast-array-splice/18
+      while (++index < this.length)
+        this[index - 1] = this[index];
+      this.pop();
+    }
+    return this;
   },
   /**
    * Rotate this array (n->0, n+1->1, ...)
@@ -507,7 +514,9 @@ $define(Array.prototype, {
    * @return {Array}   this
    */
   rotate: function(n) {
-    n = (n + this.length) % this.length;
+    if (n < 0)
+      n = n % this.length + this.length;
+    n %= this.length;
     var middle = n;
     var next = n;
     var first = 0;
@@ -522,15 +531,14 @@ $define(Array.prototype, {
     }
     return this;
   },
+
   /**
    * get last element in this array
    * Note: It's not a reference when returning a non-object!
    * @return {Mixed} last element
    */
   get back() {
-    if (this.length)
-      return this[this.length - 1];
-    return undefined;
+    return this[this.length - 1];
   },
   /**
    * get first element in this array
@@ -540,6 +548,7 @@ $define(Array.prototype, {
   get front() {
     return this[0];
   },
+
   /**
    * Flattern a array with sub arrays.
    * @param  {bool} deep if continue to flatten sub arrays
