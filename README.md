@@ -2,7 +2,7 @@
 
 apollojs is designed to extend global objects with advanced features.
 
-## Server
+## Server [![NPM version](https://badge.fury.io/js/apollojs.png)](http://badge.fury.io/js/apollojs)
 
 Apollo server extended global objects, providing features like `$wrap`,
 `Object.isEqual()`, `Object.project()`, `Array.prototype.min()` etc.
@@ -19,7 +19,7 @@ After insert this at the begining of your entry file, all your scripts could
 enjoy new featuers (as Apollo extended global objects, no need to require it
 everytime you use.)
 
-## Client
+## Client [![Bower version](https://badge.fury.io/bo/apollojs.png)](http://badge.fury.io/bo/apollojs)
 
 Apollo client providing a series of shorthand functions to manipulate DOM, SVG
 elements. providing standard `addEventListener`, `removeEventListener` to IE8

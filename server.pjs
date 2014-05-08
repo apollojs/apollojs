@@ -1,3 +1,4 @@
+#define APOLLO_SERVER
 #define GLOBAL global
 
 #include "lib/apollo.pjs"

@@ -14,19 +14,20 @@ describe('$define', function() {
     get x() { return this.a; },
     set x(v) { this.a = v; }
   });
-  it('properties should be non-enumerable', function() {
+  it('should define properties as non-enumerable', function() {
     Object.isEmpty(obj).should.be.ok;
   });
-  it('properties should be non-configurable', function() {
+  it('should define properties as non-configurable', function() {
     (delete obj.a).should.not.be.ok;
   });
-  it('getter and setter should works', function() {
+  it('should define getters and setters', function() {
     obj.x.should.eql(1);
     obj.x = 15;
     obj.a.should.eql(15);
     obj.x.should.eql(15);
   });
 });
+
 describe('$extend', function() {
   var objects = {
     get lhv() {
@@ -111,8 +112,9 @@ describe('$extend', function() {
 
   });
 });
-describe('$typeof', function () {
-  it('should return array', function () {
+
+describe('$typeof', function() {
+  it('should return array', function() {
     $typeof([]).should.eql('array');
   });
   it('should return function', function() {
@@ -121,22 +123,23 @@ describe('$typeof', function () {
   it('should return number', function() {
     $typeof(0).should.eql('number');
   });
-  it('should return object', function () {
+  it('should return object', function() {
     $typeof({}).should.eql('object');
   });
   it('should return regexp', function() {
     $typeof(/regexp/).should.eql('regexp');
   });
-  it('should return string', function () {
+  it('should return string', function() {
     $typeof('').should.eql('string');
   });
-  it('should return object', function () {
+  it('should return object', function() {
     var Ctor = function() {};
     $typeof(new Ctor()).should.eql('object');
   });
 });
+
 describe('Array', function() {
-  describe('flatten', function() {
+  describe('#flatten', function() {
     it('should flatten [1, [2, 3], 4] as [1, 2, 3, 4]', function() {
       [1, [2, 3], 4].flatten().should.eql([1, 2, 3, 4]);
     });
@@ -147,7 +150,7 @@ describe('Array', function() {
       [1, [2, [3, [4]]]].flatten(true).should.eql([1, 2, 3, 4]);
     });
   });
-  describe('rotate', function() {
+  describe('#rotate', function() {
     it('should rotate [1,2,3,4,5] by -1 as [5,1,2,3,4]', function() {
       [1, 2, 3, 4, 5].rotate(-1).should.eql([5, 1, 2, 3, 4]);
     });
@@ -176,21 +179,21 @@ describe('Array', function() {
       [1].rotate(0).should.eql([1]);
     });
   });
-  describe('unique', function () {
-    it('should return [1,3,2] after unique [1,3,2,3,2,1]', function () {
+  describe('#unique', function() {
+    it('should return [1,3,2] after unique [1,3,2,3,2,1]', function() {
       [1,3,2,3,2,1].unique().should.eql([1,3,2]);
     });
-    it('should return [] after unique []', function () {
+    it('should return [] after unique []', function() {
       [].unique().should.eql([]);
     });
-    it('should return [1] after unique [1, "1"]', function () {
+    it('should return [1] after unique [1, "1"]', function() {
       [1, "1"].unique().should.eql([1]);
     });
   });
 });
 
 describe('String', function() {
-  describe('startsWith', function() {
+  describe('#startsWith', function() {
     it('should be able to determin if A starts with B', function() {
       'a'.startsWith('').should.be.ok;
       'a'.startsWith(null).should.be.ok;
@@ -204,7 +207,7 @@ describe('String', function() {
       'ab'.startsWith('b', 1).should.be.ok;
     });
   });
-  describe('endsWith', function() {
+  describe('#endsWith', function() {
     it('should be able to determin if A ends with B', function() {
       'a'.endsWith('').should.be.ok;
       'a'.endsWith(null).should.be.ok;
@@ -218,7 +221,7 @@ describe('String', function() {
       'ab'.endsWith('a', 1).should.be.ok;
     });
   });
-  describe('toTitleCase', function() {
+  describe('#toTitleCase', function() {
     it('should return correct title case form of A', function() {
       'a'.toTitleCase().should.eql('A');
       ''.toTitleCase().should.eql('');
@@ -236,7 +239,7 @@ describe('String', function() {
 });
 
 describe('Number', function() {
-  describe('clamp', function() {
+  describe('#clamp', function() {
     it('should be able to clamp a number to the given range', function() {
       (15).clamp(1, 10).should.eql(10);
       (10).clamp(1, 10).should.eql(10);
@@ -244,15 +247,19 @@ describe('Number', function() {
       (-10).clamp(1, 10).should.eql(1);
     });
   });
-  describe('floor and ceil', function() {
-    it('should be able to return the floor and ceil of the number', function() {
+  describe('#floor', function() {
+    it('should return the floor(this)', function() {
       (2-1e-8).floor().should.eql(1);
-      (2-1e-8).ceil().should.eql(2);
       (1).floor().should.eql(1);
+    });
+  });
+  describe('#ceil', function() {
+    it('should return ceil(this)', function() {
+      (2-1e-8).ceil().should.eql(2);
       (2).ceil().should.eql(2);
     });
   });
-  describe('round', function() {
+  describe('#round', function() {
     it('should round the number', function() {
       (1.4).round().should.eql(1);
       (1.5).round().should.eql(2);
@@ -260,7 +267,7 @@ describe('Number', function() {
       (1.45).round(1).should.eql(1.5);
     });
   });
-  describe('toGroup', function() {
+  describe('#toGroup', function() {
     it('should return the thousands separated number', function() {
       (1).toGroup().should.eql('1');
       (12).toGroup().should.eql('12');
@@ -331,7 +338,7 @@ describe('Object', function() {
         }
       });
     });
-    it ('should remove undefined field', function() {
+    it('should remove undefined field', function() {
       Object.project(sample, {
         x: {
           xx: {
@@ -344,7 +351,7 @@ describe('Object', function() {
         }
       });
     });
-    it ('should keep undefined field', function() {
+    it('should keep undefined field', function() {
       Object.project(sample, {
         x: {
           xx: {
@@ -359,27 +366,31 @@ describe('Object', function() {
         }
       });
     });
-    it ('should throw, as do not support flatten key', function() {
-      Object.project(sample, {
-        'x.xx1': 1
-      }, true).should.eql({
-        x: {
-          xx1: 1
-        }
-      });
+    it('should throw, as do not support flatten key', function() {
+      (function() {
+        Object.project(sample, {
+          'x.xx1': 1
+        }, true).should.eql({
+          x: {
+            xx1: 1
+          }
+        });
+      }).should.throw();
     });
-    it ('should throw, as do not support revert mode', function() {
-      Object.project(sample, {
-        x: 0
-      }).should.eql({
-        x0: 0,
-        x1: 1,
-        x2: 2
-      });
+    it('should throw, as do not support revert mode', function() {
+      (function() {
+        Object.project(sample, {
+          x: 0
+        }).should.eql({
+          x0: 0,
+          x1: 1,
+          x2: 2
+        });
+      }).should.throw();
     });
   });
-  describe('Transformer', function () {
-    it('should transform object', function () {
+  describe('Transformer', function() {
+    it('should transform object', function() {
       var transformer = new Object.Transformer({
         name: true,
         'good.morning': '.name',
