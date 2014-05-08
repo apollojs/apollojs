@@ -2,7 +2,7 @@
 
 apollojs is designed to extend global objects with advanced features.
 
-## Server [![NPM version](https://badge.fury.io/js/apollojs.png)](http://badge.fury.io/js/apollojs)
+## Server [![NPM version](https://badge.fury.io/js/apollojs.png)](http://badge.fury.io/js/apollojs) [![Build Status](https://travis-ci.org/apollojs/apollojs.svg?branch=master)](https://travis-ci.org/apollojs/apollojs)
 
 Apollo server extended global objects, providing features like `$wrap`,
 `Object.isEqual()`, `Object.project()`, `Array.prototype.min()` etc.
