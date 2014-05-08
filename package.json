@@ -15,7 +15,8 @@
     "prepublish": "make clean server",
     "pretest": "OPTIONS=-DAPOLLO_UTILS make clean server",
     "test": "mocha",
-    "posttest": "mocha -R travis-cov"
+    "posttest": "mocha -R travis-cov",
+    "coverage": "mocha -R html-cov > coverage.html"
   },
   "main": "./server.js",
   "license": "MIT",
