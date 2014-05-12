@@ -307,6 +307,22 @@ $define(String.prototype, {
       return this + ch.repeat(length - this.length);
     return this;
   },
+
+  /**
+   * get last character in this string
+   * @return {String} last character
+   */
+  get back() {
+    return this[this.length - 1];
+  },
+  /**
+   * get first character in this string
+   * @return {String} first character
+   */
+  get front() {
+    return this[0];
+  },
+
   /**
    * Tests if this string starts with the given one.
    * @param  {string} str string to test with

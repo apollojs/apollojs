@@ -360,6 +360,18 @@ describe('String', function() {
       ''.paddingRight('b', 1).should.eql('b');
     });
   });
+  describe('front', function() {
+    it('should return the first character of string', function() {
+      '123'.front.should.eql('1');
+      (''.front === undefined).should.be.true;
+    });
+  });
+  describe('back', function() {
+    it('should return the last character of string', function() {
+      '123'.back.should.eql('3');
+      (''.back === undefined).should.be.true;
+    });
+  });
   describe('#startsWith()', function() {
     it('should be able to determin if A starts with B', function() {
       'a'.startsWith('').should.be.true;
