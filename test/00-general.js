@@ -667,3 +667,16 @@ describe('RegExp', function() {
     });
   });
 });
+
+describe('JSON', function() {
+  describe('tryParse()', function() {
+    it('should parse valid json as usual', function() {
+      JSON.tryParse('{}').should.eql({});
+      JSON.tryParse('{"a":true}').should.eql({a: true});
+    });
+    it('should parse invalid json as undefined without throw', function() {
+      (JSON.tryParse('{,}') === undefined).should.be.true;
+      (JSON.tryParse('{a:true}') === undefined).should.be.true;
+    });
+  });
+});

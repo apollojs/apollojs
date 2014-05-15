@@ -803,6 +803,21 @@ $define(RegExp, {
   }
 });
 
+$define(JSON, {
+  /**
+   * Try to parse a json string
+   * @param  {string} str json string
+   * @return {mixed}      parsed result
+   */
+  tryParse: function(str) {
+    try {
+      return JSON.parse(str);
+    } catch(e) {
+      return;
+    }
+  }
+});
+
 
 
 
